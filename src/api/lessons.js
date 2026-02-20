@@ -39,7 +39,7 @@ export const getLessonsByCourse = async (courseId, token) => {
 // Get single lesson
 export const getLessonById = async (lessonId, token) => {
   try {
-    const url = `${API_BASE_URL}/lessons/${lessonId}`;
+    const url = `${API_BASE_URL}/courses/lessons/${lessonId}`;
     
     const response = await fetch(url, {
       method: 'GET',
