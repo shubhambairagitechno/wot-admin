@@ -1,12 +1,48 @@
-import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import Swal from 'sweetalert2'
+import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const navigate = useNavigate()
+  const { login, isAuthenticated, loading } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [isAuthenticated, loading, navigate])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    navigate('/dashboard')
+    setIsLoading(true)
+
+    const result = await login(email, password)
+
+    if (result.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Successful',
+        text: 'Welcome back to the dashboard!',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false
+      }).then(() => {
+        navigate('/dashboard')
+      })
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: result.message || 'Login failed. Please try again.'
+      })
+    }
+    
+    setIsLoading(false)
   }
 
   return (
@@ -27,11 +63,32 @@ export default function Login() {
                   <form onSubmit={handleSubmit}>
                     <div className="form-group">
                       <label htmlFor="first_field" className="form-label float-start">Email address</label>
-                      <input name="email" type="email" className="form-control" id="first_field" placeholder="Email Address" aria-label="Email Address" />
+                      <input 
+                        name="email" 
+                        type="email" 
+                        className="form-control" 
+                        id="first_field" 
+                        placeholder="Email Address" 
+                        aria-label="Email Address" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
                     </div>
                     <div className="form-group">
                       <label htmlFor="second_field" className="form-label float-start">Password</label>
-                      <input name="password" type="password" className="form-control" autoComplete="off" id="second_field" placeholder="Password" aria-label="Password" />
+                      <input 
+                        name="password" 
+                        type="password" 
+                        className="form-control" 
+                        autoComplete="off" 
+                        id="second_field" 
+                        placeholder="Password" 
+                        aria-label="Password" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
                     </div>
 
                     <div className="checkbox form-group clearfix">
@@ -43,7 +100,13 @@ export default function Login() {
                       </div>
                     </div>
                     <div className="form-group clearfix">
-                      <button type="submit" className="btn btn-primary btn-lg w-100"><span>Login</span></button>
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary btn-lg w-100"
+                        disabled={isLoading}
+                      >
+                        <span>{isLoading ? 'Logging in...' : 'Login'}</span>
+                      </button>
                     </div>
                   </form>
                 </div>
