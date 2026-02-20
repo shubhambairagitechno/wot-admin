@@ -56,7 +56,7 @@ export const addCourse = async (courseData, token) => {
 // Get all courses
 export const getAllCourses = async (token) => {
   try {
-    const url = `${API_BASE_URL}/api/courses/list`;
+    const url = `${API_BASE_URL}/courses/`;
     
     const response = await fetch(url, {
       method: 'GET',
