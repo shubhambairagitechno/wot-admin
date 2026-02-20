@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { getAllCourses } from '../api/courses';
+import { getAllCourses, getCourseById } from '../api/courses';
 import { useAuth } from '../context/AuthContext';
 import GlobalLoader from '../components/GlobalLoader';
+import CourseDetailModal from '../components/CourseDetailModal';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -12,6 +13,9 @@ export default function Courses() {
   const { token } = useAuth();
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     fetchCourses();
@@ -32,6 +36,30 @@ export default function Courses() {
       setCourses([]);
     }
     setIsLoading(false);
+  };
+
+  const handleViewCourse = async (courseId) => {
+    setShowModal(true);
+    setModalLoading(true);
+    
+    const result = await getCourseById(courseId, token);
+    
+    if (result.success) {
+      setSelectedCourse(result.data);
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed to Load Course',
+        text: result.message || 'An error occurred while fetching course details',
+      });
+      setShowModal(false);
+    }
+    setModalLoading(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedCourse(null);
   };
 
   // Map status to badge color
@@ -154,7 +182,12 @@ export default function Courses() {
                                 </span>
                               </td>
                               <td>
-                                <button className="btn btn-sm btn-outline-primary">View</button>
+                                <button 
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => handleViewCourse(course.id)}
+                                >
+                                  View
+                                </button>
                               </td>
                             </tr>
                           ))}
@@ -169,6 +202,13 @@ export default function Courses() {
         </div>
       </div>
       <Footer />
+
+      <CourseDetailModal 
+        show={showModal}
+        courseData={selectedCourse}
+        isLoading={modalLoading}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
