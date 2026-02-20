@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getCourseById } from '../api/courses';
@@ -16,6 +17,7 @@ export default function CourseLessons() {
   const [lessons, setLessons] = useState([]);
   const [courseData, setCourseData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedLessonId, setExpandedLessonId] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -70,83 +72,7 @@ export default function CourseLessons() {
   };
 
   const handleViewLesson = (lesson) => {
-    // Build content display based on content type and available URLs
-    let contentHtml = `
-      <div class="text-start">
-        <p><strong>Duration:</strong> ${lesson.duration || 'N/A'}</p>
-        <p><strong>Type:</strong> ${lesson.content_type || 'N/A'}</p>
-        <p><strong>Description:</strong> ${lesson.description || 'No description'}</p>
-    `;
-
-    // Display content based on type
-    if (lesson.content_type === 'text' && lesson.content) {
-      contentHtml += `
-        <div class="alert alert-info mt-3">
-          <strong>Content:</strong>
-          <div class="mt-2">${lesson.content}</div>
-        </div>
-      `;
-    } else if (lesson.content_type === 'video' && lesson.video_url) {
-      contentHtml += `
-        <div class="mt-3">
-          <strong>Video:</strong>
-          <div class="mt-2">
-            <video width="100%" height="400" controls style="border-radius: 8px; background: #000;">
-              <source src="${lesson.video_url}" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        </div>
-      `;
-    } else if (lesson.content_type === 'audio' && lesson.file_url) {
-      contentHtml += `
-        <div class="mt-3">
-          <strong>Audio:</strong>
-          <div class="mt-2">
-            <audio controls style="width: 100%;">
-              <source src="${lesson.file_url}" type="audio/webm">
-              Your browser does not support the audio element.
-            </audio>
-          </div>
-        </div>
-      `;
-    } else if (lesson.content_type === 'doc' && lesson.file_url) {
-      const fileName = lesson.file_url.split('/').pop();
-      contentHtml += `
-        <div class="mt-3">
-          <strong>Document:</strong>
-          <div class="mt-2">
-            <a href="${lesson.file_url}" target="_blank" class="btn btn-outline-primary btn-sm">
-              <i class="fas fa-file-download me-2"></i>Download ${fileName}
-            </a>
-          </div>
-        </div>
-      `;
-    } else if (lesson.content_type === 'pdf' && lesson.file_url) {
-      contentHtml += `
-        <div class="mt-3">
-          <strong>PDF File:</strong>
-          <div class="mt-2">
-            <a href="${lesson.file_url}" target="_blank" class="btn btn-outline-danger btn-sm me-2">
-              <i class="fas fa-file-pdf me-2"></i>View PDF
-            </a>
-            <a href="${lesson.file_url}" download class="btn btn-outline-primary btn-sm">
-              <i class="fas fa-download me-2"></i>Download
-            </a>
-          </div>
-        </div>
-      `;
-    }
-
-    contentHtml += `</div>`;
-
-    Swal.fire({
-      title: lesson.title,
-      html: contentHtml,
-      icon: 'info',
-      width: '700px',
-      confirmButtonText: 'Close',
-    });
+    setExpandedLessonId(expandedLessonId === lesson.id ? null : lesson.id);
   };
 
   return (
@@ -207,20 +133,9 @@ export default function CourseLessons() {
                           </tr>
                         </thead>
                         <tbody>
-                          {lessons.map((lesson) => {
-                            // Determine available content types
-                            const availableTypes = [];
-                            if (lesson.allowed_types && Array.isArray(lesson.allowed_types)) {
-                              lesson.allowed_types.forEach(type => {
-                                const urlField = `${type}_url`;
-                                if (lesson[urlField]) {
-                                  availableTypes.push(type);
-                                }
-                              });
-                            }
-
-                            return (
-                              <tr key={lesson.id}>
+                          {lessons.map((lesson) => (
+                            <React.Fragment key={lesson.id}>
+                              <tr>
                                 <td>
                                   <span className="badge bg-primary">{lesson.order || '-'}</span>
                                 </td>
@@ -236,11 +151,11 @@ export default function CourseLessons() {
                                 <td>
                                   <div className="d-flex gap-2">
                                     <button 
-                                      className="btn btn-sm btn-outline-primary"
+                                      className={`btn btn-sm ${expandedLessonId === lesson.id ? 'btn-primary' : 'btn-outline-primary'}`}
                                       onClick={() => handleViewLesson(lesson)}
-                                      title="View Lesson"
+                                      title="View/Expand Content"
                                     >
-                                      <i className="fas fa-eye"></i>
+                                      <i className={`fas ${expandedLessonId === lesson.id ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
                                     </button>
                                     <button 
                                       className="btn btn-sm btn-outline-warning"
@@ -257,8 +172,80 @@ export default function CourseLessons() {
                                   </div>
                                 </td>
                               </tr>
-                            );
-                          })}
+
+                              {expandedLessonId === lesson.id && (
+                                <tr>
+                                  <td colSpan="6">
+                                    <div className="p-4" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                                      {lesson.content_type === 'text' && lesson.content && (
+                                        <div>
+                                          <h6>Text Content:</h6>
+                                          <div className="alert alert-info">{lesson.content}</div>
+                                        </div>
+                                      )}
+
+                                      {lesson.content_type === 'video' && lesson.video_url && (
+                                        <div>
+                                          <h6>Video Content:</h6>
+                                          <video 
+                                            width="100%" 
+                                            height="400" 
+                                            controls 
+                                            style={{ borderRadius: '8px', backgroundColor: '#000', maxWidth: '100%' }}
+                                          >
+                                            <source src={lesson.video_url} type="video/mp4" />
+                                            Your browser does not support the video tag.
+                                          </video>
+                                        </div>
+                                      )}
+
+                                      {lesson.content_type === 'audio' && lesson.file_url && (
+                                        <div>
+                                          <h6>Audio Content:</h6>
+                                          <audio 
+                                            controls 
+                                            style={{ width: '100%' }}
+                                          >
+                                            <source src={lesson.file_url} type="audio/webm" />
+                                            Your browser does not support the audio element.
+                                          </audio>
+                                        </div>
+                                      )}
+
+                                      {lesson.content_type === 'doc' && lesson.file_url && (
+                                        <div>
+                                          <h6>Document Content:</h6>
+                                          <div className="mt-3">
+                                            <a href={lesson.file_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary">
+                                              <i className="fas fa-file-download me-2"></i>Open Document
+                                            </a>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {lesson.content_type === 'pdf' && lesson.file_url && (
+                                        <div>
+                                          <h6>PDF Content:</h6>
+                                          <div className="mt-3 mb-3">
+                                            <iframe 
+                                              src={`${lesson.file_url}#toolbar=1`}
+                                              width="100%" 
+                                              height="600" 
+                                              style={{ border: '1px solid #ddd', borderRadius: '8px' }}
+                                              title="PDF Viewer"
+                                            />
+                                          </div>
+                                          <a href={lesson.file_url} download className="btn btn-outline-secondary btn-sm">
+                                            <i className="fas fa-download me-2"></i>Download PDF
+                                          </a>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          ))}
                         </tbody>
                       </table>
                     </div>
