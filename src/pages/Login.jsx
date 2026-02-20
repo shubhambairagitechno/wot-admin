@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Swal from 'sweetalert2'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -7,7 +8,6 @@ export default function Login() {
   const { login, isAuthenticated, loading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   // Redirect to dashboard if already authenticated
@@ -19,15 +19,27 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
     setIsLoading(true)
 
     const result = await login(email, password)
 
     if (result.success) {
-      navigate('/dashboard')
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Successful',
+        text: 'Welcome back to the dashboard!',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false
+      }).then(() => {
+        navigate('/dashboard')
+      })
     } else {
-      setError(result.message || 'Login failed. Please try again.')
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: result.message || 'Login failed. Please try again.'
+      })
     }
     
     setIsLoading(false)
@@ -47,13 +59,6 @@ export default function Login() {
                   </div>
 
                   <h5 className="mb-4">Login to access to your dashboard</h5>
-
-                  {error && (
-                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                      {error}
-                      <button type="button" className="btn-close" onClick={() => setError('')}></button>
-                    </div>
-                  )}
 
                   <form onSubmit={handleSubmit}>
                     <div className="form-group">

@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar() {
@@ -11,8 +12,29 @@ export default function Sidebar() {
     location.pathname === path ? "active" : "";
 
   const handleLogout = () => {
-    logout();
-    navigate('/login', { replace: true });
+    Swal.fire({
+      title: 'Logout',
+      text: 'Are you sure you want to logout?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, logout',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        logout();
+        navigate('/login', { replace: true });
+        Swal.fire({
+          icon: 'success',
+          title: 'Logged out',
+          text: 'You have been successfully logged out.',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
+      }
+    });
   };
 
   return (

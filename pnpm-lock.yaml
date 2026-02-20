@@ -17,6 +17,9 @@ importers:
       react-router-dom:
         specifier: ^6.20.0
         version: 6.30.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      sweetalert2:
+        specifier: ^11.10.0
+        version: 11.26.19
     devDependencies:
       '@vitejs/plugin-react':
         specifier: ^4.2.1
@@ -556,6 +559,9 @@ packages:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
 
+  sweetalert2@11.26.19:
+    resolution: {integrity: sha512-W1yKRcPeM3osaIovnEpYHnuNy/Ko/Y6dYQZgCjnttMt+GTGbh6AYJV6SrZyPW3q1S1Ztpd0qXdx+MhQNgfchmw==}
+
   update-browserslist-db@1.2.3:
     resolution: {integrity: sha512-Js0m9cx+qOgDxo0eMiFGEueWztz+d4+M3rGlmKPT+T4IS/jP4ylw3Nwpu6cpTTP8R1MAC1kF4VbdLt3ARf209w==}
     hasBin: true
@@ -1055,6 +1061,8 @@ snapshots:
   semver@6.3.1: {}
 
   source-map-js@1.2.1: {}
+
+  sweetalert2@11.26.19: {}
 
   update-browserslist-db@1.2.3(browserslist@4.28.1):
     dependencies:
