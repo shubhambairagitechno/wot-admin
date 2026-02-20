@@ -2,8 +2,8 @@ import React from 'react';
 import { CirclesWithBar } from 'react-loader-spinner';
 
 export default function GlobalLoader({ visible = true, size = 'medium' }) {
-  // Using Bootstrap primary color (#0d6efd)
-  const primaryColor = '#0d6efd';
+  // Using button color (#5B10BA) for consistency
+  const primaryColor = '#5B10BA';
 
   // Size configurations
   const sizes = {
