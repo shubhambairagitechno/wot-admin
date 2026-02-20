@@ -140,6 +140,8 @@ export default function AddLesson() {
 
     setIsLoading(false);
   };
+
+  return (
     <div className="main-wrapper">
       <Header />
       <Sidebar />
