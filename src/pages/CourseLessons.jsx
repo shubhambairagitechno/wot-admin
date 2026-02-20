@@ -3,7 +3,7 @@ import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getCourseById } from '../api/courses';
-import { getLessonsByCourse } from '../api/lessons';
+import { getLessonsByCourse, deleteLesson } from '../api/lessons';
 import { useAuth } from '../context/AuthContext';
 import GlobalLoader from '../components/GlobalLoader';
 import Header from '../components/Header';
@@ -73,6 +73,42 @@ export default function CourseLessons() {
 
   const handleViewLesson = (lesson) => {
     setExpandedLessonId(expandedLessonId === lesson.id ? null : lesson.id);
+  };
+
+  const handleDeleteLesson = (lessonId, lessonTitle) => {
+    Swal.fire({
+      title: 'Delete Lesson',
+      text: `Are you sure you want to delete "${lessonTitle}"? This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it',
+      cancelButtonText: 'Cancel',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const deleteResult = await deleteLesson(lessonId, token);
+
+        if (deleteResult.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted',
+            text: deleteResult.message || 'Lesson deleted successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          }).then(() => {
+            fetchData();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed to Delete',
+            text: deleteResult.message || 'An error occurred while deleting the lesson',
+          });
+        }
+      }
+    });
   };
 
   return (
@@ -166,6 +202,7 @@ export default function CourseLessons() {
                                     </button>
                                     <button 
                                       className="btn btn-sm btn-outline-danger"
+                                      onClick={() => handleDeleteLesson(lesson.id, lesson.title)}
                                       title="Delete Lesson"
                                     >
                                       <i className="fas fa-trash"></i>

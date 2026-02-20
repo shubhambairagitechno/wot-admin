@@ -120,3 +120,39 @@ export const updateLesson = async (courseId, lessonId, lessonData, token) => {
     };
   }
 };
+
+// Delete lesson
+export const deleteLesson = async (lessonId, token) => {
+  try {
+    const url = `${API_BASE_URL}/courses/lessons/${lessonId}/delete`;
+    
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return {
+        success: true,
+        data: data.data,
+        message: data.message,
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to delete lesson',
+      };
+    }
+  } catch (error) {
+    console.error('Delete Lesson API Error:', error);
+    return {
+      success: false,
+      message: error.message || 'An error occurred while deleting lesson',
+    };
+  }
+};
