@@ -71,19 +71,19 @@ export default function Sidebar() {
               </Link>
             </li>
 
-            <li>
+            {/* <li>
               <Link to="/notifications" className={isActive("/notifications")}>
                 <i className="fas fa-bell me-2"></i>
                 <span>Notifications</span>
               </Link>
-            </li>
+            </li> */}
 
-            <li>
+            {/* <li>
               <Link to="/settings" className={isActive("/settings")}>
                 <i className="fas fa-cog me-2"></i>
                 <span>Settings</span>
               </Link>
-            </li>
+            </li> */}
 
             <li className="border-top mt-3 pt-3">
               <button 
