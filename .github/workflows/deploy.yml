@@ -17,8 +17,26 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
+
             cd /var/www/wayoftrading/wot-admin
-            git pull origin main
+
+            # Fix git safe directory (important for ubuntu + nginx setups)
+            git config --global --add safe.directory /var/www/wayoftrading/wot-admin
+
+            # Force exact sync with GitHub
+            git fetch origin
+            git reset --hard origin/main
+
+            # Clean old dependencies and build
+            rm -rf node_modules
+            rm -rf dist
+
+            # Install and build fresh
             npm install
             npm run build
+
+            # Restart nginx
             sudo systemctl restart nginx
+
+            echo "🚀 Deployment completed successfully"
