@@ -235,3 +235,39 @@ export const deleteCourse = async (courseId, token) => {
     };
   }
 };
+
+// Get categories by course ID
+export const getCategoriesByCourse = async (courseId, token) => {
+  try {
+    const url = `${API_BASE_URL}/courses/admin/course/category/${courseId}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return {
+        success: true,
+        data: data.categories || [],
+        message: data.message,
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to fetch categories',
+      };
+    }
+  } catch (error) {
+    console.error('Get Categories API Error:', error);
+    return {
+      success: false,
+      message: error.message || 'An error occurred while fetching categories',
+    };
+  }
+};

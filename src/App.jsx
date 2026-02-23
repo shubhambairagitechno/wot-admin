@@ -9,6 +9,7 @@ import EditCourse from './pages/EditCourse'
 import CourseLessons from './pages/CourseLessons'
 import EditLesson from './pages/EditLesson'
 import Lessons from './pages/Lessons'
+import Categories from './pages/Categories'
 import Quizes from './pages/Quizes'
 import UserList from './pages/UserList'
 import AddLesson from './pages/AddLesson'
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/course/:courseId/lessons" element={<ProtectedRoute><CourseLessons /></ProtectedRoute>} />
         <Route path="/course/:courseId/lesson/:lessonId/edit" element={<ProtectedRoute><EditLesson /></ProtectedRoute>} />
         <Route path="/course/:courseId/add-lesson" element={<ProtectedRoute><AddLesson /></ProtectedRoute>} />
+        <Route path="/course/:courseId/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
         <Route path="/lessons" element={<ProtectedRoute><Lessons /></ProtectedRoute>} />
         <Route path="/quizes" element={<ProtectedRoute><Quizes /></ProtectedRoute>} />
         <Route path="/user-list" element={<ProtectedRoute><UserList /></ProtectedRoute>} />

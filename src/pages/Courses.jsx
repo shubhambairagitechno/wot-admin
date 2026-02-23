@@ -182,7 +182,7 @@ export default function Courses() {
                             <th>Course Title</th>
                             <th>Level</th>
                             <th>Duration</th>
-                            <th>Chapters</th>
+                            <th>Categories</th>
                             <th>Enrolled</th>
                             <th>Status</th>
                             <th>Action</th>
@@ -218,7 +218,15 @@ export default function Courses() {
                                 </span>
                               </td>
                               <td>{course.duration_in_minutes} min</td>
-                              <td>{course.total_chapters || 0}</td>
+                              <td>
+                                <button 
+                                  className="btn btn-sm btn-link text-primary p-0"
+                                  onClick={() => navigate(`/course/${course.id}/categories`)}
+                                  style={{ textDecoration: 'none', cursor: 'pointer' }}
+                                >
+                                  <span className="badge bg-info">{course.category_count || 0}</span>
+                                </button>
+                              </td>
                               <td>{course.enrolled_count || 0}</td>
                               <td>
                                 <span className={`badge ${getStatusBadge(course.status)}`}>
