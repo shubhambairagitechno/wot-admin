@@ -73,7 +73,17 @@ export const addCourse = async (courseData, token) => {
 // Get all courses
 export const getAllCourses = async (token) => {
   try {
-    const url = `${API_BASE_URL}/courses/`;
+    const url = `${API_BASE_URL}/courses`;
+    
+    console.log("[v0] Fetching courses from:", url);
+    console.log("[v0] Token available:", !!token);
+    
+    if (!token) {
+      return {
+        success: false,
+        message: 'Authentication token is missing',
+      };
+    }
     
     const response = await fetch(url, {
       method: 'GET',
@@ -83,7 +93,18 @@ export const getAllCourses = async (token) => {
       },
     });
 
+    console.log("[v0] Response status:", response.status);
+    
+    if (!response.ok) {
+      console.error("[v0] HTTP Error:", response.status, response.statusText);
+      return {
+        success: false,
+        message: `HTTP Error: ${response.status} ${response.statusText}`,
+      };
+    }
+
     const data = await response.json();
+    console.log("[v0] Response data:", data);
 
     if (data.status === 1) {
       return {
@@ -98,7 +119,7 @@ export const getAllCourses = async (token) => {
       };
     }
   } catch (error) {
-    console.error('Get Courses API Error:', error);
+    console.error('[v0] Get Courses API Error:', error);
     return {
       success: false,
       message: error.message || 'An error occurred while fetching courses',
