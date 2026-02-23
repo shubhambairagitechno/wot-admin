@@ -234,13 +234,6 @@ export default function Courses() {
                                   >
                                     <i className="fas fa-eye"></i>
                                   </button>
-                                  <button 
-                                    className="btn btn-sm btn-outline-info"
-                                    onClick={() => navigate(`/course/${course.id}/lessons`)}
-                                    title="View Lessons"
-                                  >
-                                    <i className="fas fa-list"></i>
-                                  </button>
                                   <Link 
                                     to={`/edit-course/${course.id}`}
                                     className="btn btn-sm btn-outline-warning"
