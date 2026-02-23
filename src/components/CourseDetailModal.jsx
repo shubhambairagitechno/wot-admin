@@ -60,27 +60,61 @@ export default function CourseDetailModal({ show, courseData, isLoading, onClose
                 {/* Course Header */}
                 <div className="mb-4">
                   <img 
-                    src={courseData.image_url} 
+                    src={courseData.thumbnail || courseData.image} 
                     alt={courseData.title}
                     style={{
                       width: '100%',
                       height: '300px',
                       objectFit: 'cover',
                       borderRadius: '8px',
-                      marginBottom: '20px'
+                      marginBottom: '20px',
+                      backgroundColor: '#f0f0f0'
                     }}
                   />
                   
                   <h4 className="mb-2">{courseData.title}</h4>
+                  <p className="text-muted mb-3">{courseData.slug}</p>
                   
-                  <div className="d-flex gap-2 mb-3">
+                  <div className="d-flex flex-wrap gap-2 mb-3">
                     <span className="badge bg-success">{courseData.status}</span>
                     <span className="badge bg-primary">{courseData.level}</span>
-                    <span className="badge bg-info">{courseData.duration}</span>
+                    <span className="badge bg-info">{courseData.duration_in_minutes} min</span>
+                    {courseData.is_featured && <span className="badge bg-warning">Featured</span>}
+                    {courseData.is_free ? (
+                      <span className="badge bg-success">Free</span>
+                    ) : (
+                      <span className="badge bg-info">${courseData.price}</span>
+                    )}
+                  </div>
+
+                  <div className="row mt-3">
+                    <div className="col-md-6">
+                      <small className="text-muted d-block">Enrolled: <strong>{courseData.enrolled_count}</strong></small>
+                    </div>
+                    <div className="col-md-6">
+                      <small className="text-muted d-block">Language: <strong>{courseData.language}</strong></small>
+                    </div>
+                    {courseData.rating_count > 0 && (
+                      <div className="col-md-6">
+                        <small className="text-muted d-block">Rating: <strong>{courseData.rating_avg} ({courseData.rating_count})</strong></small>
+                      </div>
+                    )}
+                    {courseData.certificate_available && (
+                      <div className="col-md-6">
+                        <small className="text-muted d-block"><i className="fa fa-certificate me-1"></i>Certificate Available</small>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Course Info Section */}
+                {courseData.short_description && (
+                  <div className="mb-4">
+                    <h6 className="text-primary mb-2">Short Description</h6>
+                    <p className="text-muted">{courseData.short_description}</p>
+                  </div>
+                )}
+
                 <div className="mb-4">
                   <h6 className="text-primary mb-2">Course Description</h6>
                   <p className="text-muted">{courseData.description}</p>
@@ -91,31 +125,48 @@ export default function CourseDetailModal({ show, courseData, isLoading, onClose
                   <p className="text-muted">{courseData.objectives}</p>
                 </div>
 
-                {/* Lessons Section */}
-                {courseData.lessons && courseData.lessons.length > 0 && (
+                {/* Categories and Chapters Section */}
+                {courseData.categories && courseData.categories.length > 0 && (
                   <div className="mb-4">
-                    <h6 className="text-primary mb-3">Course Lessons ({courseData.lesson_count})</h6>
-                    <div className="list-group">
-                      {courseData.lessons.map((lesson, index) => (
-                        <div key={lesson.id} className="list-group-item">
-                          <div className="d-flex align-items-start">
-                            <div className="me-3 pt-1">
-                              <span className="badge bg-light text-dark">
-                                {lesson.order || index + 1}
-                              </span>
-                            </div>
-                            <div className="flex-grow-1">
-                              <div className="d-flex align-items-center mb-1">
-                                <h6 className="mb-0">{lesson.title}</h6>
-                                <span className="ms-2 badge bg-secondary">
-                                  <i className={`fa ${getContentTypeIcon(lesson.content_type)} me-1`}></i>
-                                  {getContentTypeLabel(lesson.content_type)}
-                                </span>
-                              </div>
-                              <p className="text-muted small mb-1">{lesson.description}</p>
-                              <small className="text-muted">
-                                <i className="fa fa-clock me-1"></i>Duration: {lesson.duration}
-                              </small>
+                    <h6 className="text-primary mb-3">Course Content ({courseData.total_chapters} Chapters, {courseData.total_lessons} Lessons)</h6>
+                    <div className="accordion" id="courseCategoriesAccordion">
+                      {courseData.categories.map((category, catIndex) => (
+                        <div key={category.id} className="accordion-item">
+                          <h2 className="accordion-header">
+                            <button 
+                              className="accordion-button" 
+                              type="button" 
+                              data-bs-toggle="collapse"
+                              data-bs-target={`#category-${category.id}`}
+                              aria-expanded={catIndex === 0}
+                            >
+                              <span className="badge bg-secondary me-2">{category.chapters?.length || 0}</span>
+                              {category.name}
+                            </button>
+                          </h2>
+                          <div 
+                            id={`category-${category.id}`}
+                            className={`accordion-collapse collapse ${catIndex === 0 ? 'show' : ''}`}
+                            data-bs-parent="#courseCategoriesAccordion"
+                          >
+                            <div className="accordion-body p-0">
+                              {category.chapters?.map((chapter, chIdx) => (
+                                <div key={chapter.id} className="border-bottom">
+                                  <div className="p-3">
+                                    <div className="d-flex align-items-start">
+                                      <span className="badge bg-light text-dark me-2 mt-1">{chapter.chapter_number}</span>
+                                      <div className="flex-grow-1">
+                                        <h6 className="mb-1">{chapter.title}</h6>
+                                        <p className="text-muted small mb-2">{chapter.description}</p>
+                                        <small className="text-muted d-block">
+                                          <i className="fa fa-clock me-1"></i>{chapter.duration_in_minutes || chapter.total_duration} min
+                                          {chapter.lesson_count > 0 && ` • ${chapter.lesson_count} lesson${chapter.lesson_count !== 1 ? 's' : ''}`}
+                                        </small>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
