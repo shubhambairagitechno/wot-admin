@@ -2,25 +2,26 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
-import { getCourseById, getCategoriesByCourse } from '../api/courses';
+import { getCourseById } from '../api/courses';
 import GlobalLoader from '../components/GlobalLoader';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 
-export default function Categories() {
+export default function ChapterLessons() {
   const { token } = useAuth();
-  const { courseId } = useParams();
+  const { courseId, categoryId, chapterId } = useParams();
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [chapter, setChapter] = useState(null);
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (courseId) {
+    if (courseId && categoryId && chapterId) {
       fetchData();
     }
-  }, [courseId]);
+  }, [courseId, categoryId, chapterId]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -31,19 +32,87 @@ export default function Categories() {
       setCourse(courseResult.data);
     }
     
-    // Fetch categories for the course
-    const categoriesResult = await getCategoriesByCourse(courseId, token);
-    if (categoriesResult.success) {
-      setCategories(categoriesResult.data || []);
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed to Load Categories',
-        text: categoriesResult.message || 'An error occurred while fetching categories',
-      });
-    }
-    
+    // TODO: Fetch chapter details and lessons from API when endpoint is available
+    // For now using demo data
+    setChapter({
+      id: chapterId,
+      title: 'Chapter 1: Market Structure Basics',
+      description: 'Understanding market structure and price action',
+      order_number: 1
+    });
+
+    const demoLessons = [
+      {
+        id: 1,
+        title: 'Introduction to Market Structure',
+        content_type: 'Video',
+        order_number: 1,
+        duration: '12:45',
+        status: 'Published',
+        created_at: '2024-01-15T10:30:00'
+      },
+      {
+        id: 2,
+        title: 'Identifying Market Trends',
+        content_type: 'Video',
+        order_number: 2,
+        duration: '18:20',
+        status: 'Published',
+        created_at: '2024-01-15T11:00:00'
+      },
+      {
+        id: 3,
+        title: 'Price Action Patterns',
+        content_type: 'Text',
+        order_number: 3,
+        duration: '-',
+        status: 'Published',
+        created_at: '2024-01-15T14:15:00'
+      },
+      {
+        id: 4,
+        title: 'Market Structure Worksheet',
+        content_type: 'PDF',
+        order_number: 4,
+        duration: '-',
+        status: 'Published',
+        created_at: '2024-01-16T09:00:00'
+      },
+      {
+        id: 5,
+        title: 'Live Trading Example',
+        content_type: 'Video',
+        order_number: 5,
+        duration: '25:30',
+        status: 'Review',
+        created_at: '2024-01-16T13:45:00'
+      }
+    ];
+
+    setLessons(demoLessons);
     setIsLoading(false);
+  };
+
+  const getContentTypeBadge = (contentType) => {
+    const badgeMap = {
+      'text': 'bg-info',
+      'video': 'bg-danger',
+      'audio': 'bg-primary',
+      'doc': 'bg-warning',
+      'pdf': 'bg-secondary',
+    };
+    return badgeMap[contentType?.toLowerCase()] || 'bg-dark';
+  };
+
+  const getContentTypeIcon = (contentType) => {
+    const iconMap = {
+      'text': 'fas fa-file-alt',
+      'video': 'fas fa-video',
+      'audio': 'fas fa-headphones',
+      'doc': 'fas fa-file-word',
+      'pdf': 'fas fa-file-pdf',
+    };
+    return iconMap[contentType?.toLowerCase()] || 'fas fa-file';
   };
 
   const getStatusBadge = (status) => {
@@ -53,14 +122,15 @@ export default function Categories() {
       draft: 'bg-warning',
       published: 'bg-success',
       blocked: 'bg-danger',
+      review: 'bg-info',
     };
     return statusMap[status?.toLowerCase()] || 'bg-secondary';
   };
 
-  const handleDeleteCategory = (categoryId, categoryTitle) => {
+  const handleDeleteLesson = (lessonId, lessonTitle) => {
     Swal.fire({
-      title: 'Delete Category',
-      text: `Are you sure you want to delete "${categoryTitle}"? This action cannot be undone.`,
+      title: 'Delete Lesson',
+      text: `Are you sure you want to delete "${lessonTitle}"? This action cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -69,11 +139,11 @@ export default function Categories() {
       cancelButtonText: 'Cancel',
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // TODO: Implement delete category API call when endpoint is available
+        // TODO: Implement delete lesson API call when endpoint is available
         Swal.fire({
           icon: 'info',
           title: 'Delete Feature',
-          text: 'Delete category feature will be available soon',
+          text: 'Delete lesson feature will be available soon',
         });
       }
     });
@@ -88,16 +158,19 @@ export default function Categories() {
           <div className="page-header">
             <div className="content-page-header">
               <div>
-                <h5>Categories{course && ` - ${course.title}`}</h5>
+                <h5>Lessons{chapter && ` - ${chapter.title}`}</h5>
+                {chapter?.description && (
+                  <p className="text-muted small">{chapter.description}</p>
+                )}
               </div>
               <div className="list-btn">
                 <ul className="filter-list">
                   <li>
                     <button 
                       className="btn btn-outline-secondary"
-                      onClick={() => navigate(`/courses`)}
+                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapters`)}
                     >
-                      <i className="fas fa-arrow-left me-2"></i>Back to Courses
+                      <i className="fas fa-arrow-left me-2"></i>Back to Chapters
                     </button>
                   </li>
                   <li>
@@ -124,9 +197,9 @@ export default function Categories() {
                   <li>
                     <button 
                       className="btn btn-primary"
-                      onClick={() => navigate(`/course/${courseId}/add-category`)}
+                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/add-lesson`)}
                     >
-                      <i className="fa fa-plus-circle me-2"></i>Add Category
+                      <i className="fa fa-plus-circle me-2"></i>Add Lesson
                     </button>
                   </li>
                 </ul>
@@ -140,67 +213,63 @@ export default function Categories() {
                 <div className="card-body">
                   {isLoading ? (
                     <GlobalLoader visible={true} size="medium" />
-                  ) : categories.length === 0 ? (
+                  ) : lessons.length === 0 ? (
                     <div className="text-center py-5">
-                      <p className="text-muted">No categories found for this course</p>
+                      <p className="text-muted">No lessons found for this chapter</p>
                     </div>
                   ) : (
                     <div className="table-responsive">
                       <table className="table table-striped">
                         <thead>
                           <tr>
-                            <th>Category Title</th>
+                            <th>Lesson Title</th>
                             <th>Order</th>
-                            <th>Chapters</th>
+                            <th>Type</th>
+                            <th>Duration</th>
                             <th>Status</th>
                             <th>Created Date</th>
                             <th>Action</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {categories.map((category) => (
-                            <tr key={category.id}>
+                          {lessons.map((lesson) => (
+                            <tr key={lesson.id}>
                               <td>
                                 <div>
-                                  <span className="fw-bold">{category.title}</span>
-                                  <br />
-                                  <small className="text-muted">{category.description}</small>
+                                  <span className="fw-bold">{lesson.title}</span>
                                 </div>
                               </td>
                               <td>
-                                <span className="badge bg-secondary">{category.order_number}</span>
+                                <span className="badge bg-secondary">{lesson.order_number}</span>
                               </td>
                               <td>
-                                <button 
-                                  className="btn btn-sm btn-link text-primary p-0"
-                                  onClick={() => navigate(`/course/${courseId}/category/${category.id}/chapters`)}
-                                  style={{ textDecoration: 'none', cursor: 'pointer' }}
-                                  title="View Chapters"
-                                >
-                                  <span className="badge bg-info">{category.chapter_count || 0}</span>
-                                </button>
+                                <span className={`badge ${getContentTypeBadge(lesson.content_type)}`}>
+                                  <i className={`${getContentTypeIcon(lesson.content_type)} me-1`}></i>
+                                  {lesson.content_type}
+                                </span>
                               </td>
+                              <td>{lesson.duration}</td>
                               <td>
-                                <span className={`badge ${getStatusBadge(category.status)}`}>
-                                  {category.status}
+                                <span className={`badge ${getStatusBadge(lesson.status)}`}>
+                                  {lesson.status}
                                 </span>
                               </td>
                               <td>
-                                {category.created_at ? new Date(category.created_at).toLocaleDateString() : '-'}
+                                {lesson.created_at ? new Date(lesson.created_at).toLocaleDateString() : '-'}
                               </td>
                               <td>
                                 <div className="d-flex gap-2">
                                   <button 
                                     className="btn btn-sm btn-outline-warning"
-                                    onClick={() => navigate(`/course/${courseId}/category/${category.id}/edit`)}
-                                    title="Edit Category"
+                                    onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lesson/${lesson.id}/edit`)}
+                                    title="Edit Lesson"
                                   >
                                     <i className="fas fa-edit"></i>
                                   </button>
                                   <button 
                                     className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleDeleteCategory(category.id, category.title)}
-                                    title="Delete Category"
+                                    onClick={() => handleDeleteLesson(lesson.id, lesson.title)}
+                                    title="Delete Lesson"
                                   >
                                     <i className="fas fa-trash"></i>
                                   </button>

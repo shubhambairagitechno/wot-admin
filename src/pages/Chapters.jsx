@@ -2,25 +2,26 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
-import { getCourseById, getCategoriesByCourse } from '../api/courses';
+import { getCourseById } from '../api/courses';
 import GlobalLoader from '../components/GlobalLoader';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 
-export default function Categories() {
+export default function Chapters() {
   const { token } = useAuth();
-  const { courseId } = useParams();
+  const { courseId, categoryId } = useParams();
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+  const [chapters, setChapters] = useState([]);
+  const [category, setCategory] = useState(null);
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (courseId) {
+    if (courseId && categoryId) {
       fetchData();
     }
-  }, [courseId]);
+  }, [courseId, categoryId]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -31,18 +32,63 @@ export default function Categories() {
       setCourse(courseResult.data);
     }
     
-    // Fetch categories for the course
-    const categoriesResult = await getCategoriesByCourse(courseId, token);
-    if (categoriesResult.success) {
-      setCategories(categoriesResult.data || []);
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed to Load Categories',
-        text: categoriesResult.message || 'An error occurred while fetching categories',
-      });
-    }
-    
+    // TODO: Fetch chapters from API when endpoint is available
+    // For now using demo data
+    setCategory({
+      id: categoryId,
+      title: 'Foundations of Technical Analysis',
+      description: 'Learn the basics of technical analysis'
+    });
+
+    const demoChapters = [
+      {
+        id: 1,
+        title: 'Chapter 1: Market Structure Basics',
+        description: 'Understanding market structure and price action',
+        order_number: 1,
+        lesson_count: 5,
+        status: 'Published',
+        created_at: '2024-01-15T10:30:00'
+      },
+      {
+        id: 2,
+        title: 'Chapter 2: Support & Resistance Levels',
+        description: 'Identifying key support and resistance levels',
+        order_number: 2,
+        lesson_count: 4,
+        status: 'Published',
+        created_at: '2024-01-20T14:22:00'
+      },
+      {
+        id: 3,
+        title: 'Chapter 3: Trendlines & Channels',
+        description: 'Drawing and using trendlines effectively',
+        order_number: 3,
+        lesson_count: 3,
+        status: 'Draft',
+        created_at: '2024-02-01T09:15:00'
+      },
+      {
+        id: 4,
+        title: 'Chapter 4: Advanced Price Action',
+        description: 'Advanced techniques in price action trading',
+        order_number: 4,
+        lesson_count: 6,
+        status: 'Published',
+        created_at: '2024-02-05T11:45:00'
+      },
+      {
+        id: 5,
+        title: 'Chapter 5: Market Analysis',
+        description: 'Complete market analysis framework',
+        order_number: 5,
+        lesson_count: 8,
+        status: 'Review',
+        created_at: '2024-02-10T13:20:00'
+      }
+    ];
+
+    setChapters(demoChapters);
     setIsLoading(false);
   };
 
@@ -53,14 +99,15 @@ export default function Categories() {
       draft: 'bg-warning',
       published: 'bg-success',
       blocked: 'bg-danger',
+      review: 'bg-info',
     };
     return statusMap[status?.toLowerCase()] || 'bg-secondary';
   };
 
-  const handleDeleteCategory = (categoryId, categoryTitle) => {
+  const handleDeleteChapter = (chapterId, chapterTitle) => {
     Swal.fire({
-      title: 'Delete Category',
-      text: `Are you sure you want to delete "${categoryTitle}"? This action cannot be undone.`,
+      title: 'Delete Chapter',
+      text: `Are you sure you want to delete "${chapterTitle}"? This action cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -69,11 +116,11 @@ export default function Categories() {
       cancelButtonText: 'Cancel',
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // TODO: Implement delete category API call when endpoint is available
+        // TODO: Implement delete chapter API call when endpoint is available
         Swal.fire({
           icon: 'info',
           title: 'Delete Feature',
-          text: 'Delete category feature will be available soon',
+          text: 'Delete chapter feature will be available soon',
         });
       }
     });
@@ -88,16 +135,19 @@ export default function Categories() {
           <div className="page-header">
             <div className="content-page-header">
               <div>
-                <h5>Categories{course && ` - ${course.title}`}</h5>
+                <h5>Chapters{category && ` - ${category.title}`}</h5>
+                {category?.description && (
+                  <p className="text-muted small">{category.description}</p>
+                )}
               </div>
               <div className="list-btn">
                 <ul className="filter-list">
                   <li>
                     <button 
                       className="btn btn-outline-secondary"
-                      onClick={() => navigate(`/courses`)}
+                      onClick={() => navigate(`/course/${courseId}/categories`)}
                     >
-                      <i className="fas fa-arrow-left me-2"></i>Back to Courses
+                      <i className="fas fa-arrow-left me-2"></i>Back to Categories
                     </button>
                   </li>
                   <li>
@@ -124,9 +174,9 @@ export default function Categories() {
                   <li>
                     <button 
                       className="btn btn-primary"
-                      onClick={() => navigate(`/course/${courseId}/add-category`)}
+                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/add-chapter`)}
                     >
-                      <i className="fa fa-plus-circle me-2"></i>Add Category
+                      <i className="fa fa-plus-circle me-2"></i>Add Chapter
                     </button>
                   </li>
                 </ul>
@@ -140,67 +190,67 @@ export default function Categories() {
                 <div className="card-body">
                   {isLoading ? (
                     <GlobalLoader visible={true} size="medium" />
-                  ) : categories.length === 0 ? (
+                  ) : chapters.length === 0 ? (
                     <div className="text-center py-5">
-                      <p className="text-muted">No categories found for this course</p>
+                      <p className="text-muted">No chapters found for this category</p>
                     </div>
                   ) : (
                     <div className="table-responsive">
                       <table className="table table-striped">
                         <thead>
                           <tr>
-                            <th>Category Title</th>
+                            <th>Chapter Title</th>
                             <th>Order</th>
-                            <th>Chapters</th>
+                            <th>Lessons</th>
                             <th>Status</th>
                             <th>Created Date</th>
                             <th>Action</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {categories.map((category) => (
-                            <tr key={category.id}>
+                          {chapters.map((chapter) => (
+                            <tr key={chapter.id}>
                               <td>
                                 <div>
-                                  <span className="fw-bold">{category.title}</span>
+                                  <span className="fw-bold">{chapter.title}</span>
                                   <br />
-                                  <small className="text-muted">{category.description}</small>
+                                  <small className="text-muted">{chapter.description}</small>
                                 </div>
                               </td>
                               <td>
-                                <span className="badge bg-secondary">{category.order_number}</span>
+                                <span className="badge bg-secondary">{chapter.order_number}</span>
                               </td>
                               <td>
                                 <button 
                                   className="btn btn-sm btn-link text-primary p-0"
-                                  onClick={() => navigate(`/course/${courseId}/category/${category.id}/chapters`)}
+                                  onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapter.id}/lessons`)}
                                   style={{ textDecoration: 'none', cursor: 'pointer' }}
-                                  title="View Chapters"
+                                  title="View Lessons"
                                 >
-                                  <span className="badge bg-info">{category.chapter_count || 0}</span>
+                                  <span className="badge bg-primary">{chapter.lesson_count || 0}</span>
                                 </button>
                               </td>
                               <td>
-                                <span className={`badge ${getStatusBadge(category.status)}`}>
-                                  {category.status}
+                                <span className={`badge ${getStatusBadge(chapter.status)}`}>
+                                  {chapter.status}
                                 </span>
                               </td>
                               <td>
-                                {category.created_at ? new Date(category.created_at).toLocaleDateString() : '-'}
+                                {chapter.created_at ? new Date(chapter.created_at).toLocaleDateString() : '-'}
                               </td>
                               <td>
                                 <div className="d-flex gap-2">
                                   <button 
                                     className="btn btn-sm btn-outline-warning"
-                                    onClick={() => navigate(`/course/${courseId}/category/${category.id}/edit`)}
-                                    title="Edit Category"
+                                    onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapter.id}/edit`)}
+                                    title="Edit Chapter"
                                   >
                                     <i className="fas fa-edit"></i>
                                   </button>
                                   <button 
                                     className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleDeleteCategory(category.id, category.title)}
-                                    title="Delete Category"
+                                    onClick={() => handleDeleteChapter(chapter.id, chapter.title)}
+                                    title="Delete Chapter"
                                   >
                                     <i className="fas fa-trash"></i>
                                   </button>
