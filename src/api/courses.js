@@ -9,19 +9,51 @@ export const addCourse = async (courseData, token) => {
     
     // Create FormData for multipart/form-data
     const formData = new FormData();
-    formData.append('title', courseData.title);
-    formData.append('slug', courseData.slug || '');
-    formData.append('description', courseData.description);
-    formData.append('short_description', courseData.short_description || '');
-    formData.append('objectives', courseData.objectives || '');
-    formData.append('duration_in_minutes', courseData.duration_in_minutes || 0);
-    formData.append('level', courseData.level || '');
-    formData.append('language', courseData.language || '');
-    formData.append('price', courseData.price || 0);
-    formData.append('status', courseData.status || '');
-    formData.append('is_free', courseData.is_free !== undefined ? courseData.is_free : true);
-    formData.append('certificate_available', courseData.certificate_available !== undefined ? courseData.certificate_available : true);
-    formData.append('is_featured', courseData.is_featured !== undefined ? courseData.is_featured : false);
+    
+    // Append required string fields
+    if (courseData.title) {
+      formData.append('title', courseData.title);
+    }
+    if (courseData.slug) {
+      formData.append('slug', courseData.slug);
+    }
+    if (courseData.description) {
+      formData.append('description', courseData.description);
+    }
+    if (courseData.short_description) {
+      formData.append('short_description', courseData.short_description);
+    }
+    if (courseData.objectives) {
+      formData.append('objectives', courseData.objectives);
+    }
+    if (courseData.level) {
+      formData.append('level', courseData.level);
+    }
+    if (courseData.language) {
+      formData.append('language', courseData.language);
+    }
+    if (courseData.status) {
+      formData.append('status', courseData.status);
+    }
+    
+    // Append numeric fields (only if they have values)
+    if (courseData.duration_in_minutes !== undefined && courseData.duration_in_minutes !== null && courseData.duration_in_minutes !== '') {
+      formData.append('duration_in_minutes', courseData.duration_in_minutes);
+    }
+    if (courseData.price !== undefined && courseData.price !== null && courseData.price !== '') {
+      formData.append('price', courseData.price);
+    }
+    
+    // Append boolean fields only when explicitly set
+    if (courseData.is_free !== undefined && courseData.is_free !== null) {
+      formData.append('is_free', courseData.is_free ? 1 : 0);
+    }
+    if (courseData.certificate_available !== undefined && courseData.certificate_available !== null) {
+      formData.append('certificate_available', courseData.certificate_available ? 1 : 0);
+    }
+    if (courseData.is_featured !== undefined && courseData.is_featured !== null) {
+      formData.append('is_featured', courseData.is_featured ? 1 : 0);
+    }
     
     // Append image if provided
     if (courseData.image instanceof File) {
@@ -169,30 +201,59 @@ export const updateCourse = async (courseId, courseData, token) => {
     const url = `${API_BASE_URL}/courses/admin/course/${courseId}`;
     
     const formData = new FormData();
-    formData.append('title', courseData.title);
-    formData.append('slug', courseData.slug || '');
-    formData.append('description', courseData.description);
-    formData.append('short_description', courseData.short_description || '');
-    formData.append('objectives', courseData.objectives || '');
-    formData.append('duration_in_minutes', courseData.duration_in_minutes || 0);
-    formData.append('level', courseData.level || '');
-    formData.append('language', courseData.language || '');
-    formData.append('price', courseData.price || 0);
-    formData.append('status', courseData.status || '');
-    formData.append('is_free', courseData.is_free !== undefined ? courseData.is_free : true);
-    formData.append('certificate_available', courseData.certificate_available !== undefined ? courseData.certificate_available : true);
-    formData.append('is_featured', courseData.is_featured !== undefined ? courseData.is_featured : false);
     
+    // Append required string fields
+    if (courseData.title) {
+      formData.append('title', courseData.title);
+    }
+    if (courseData.slug) {
+      formData.append('slug', courseData.slug);
+    }
+    if (courseData.description) {
+      formData.append('description', courseData.description);
+    }
+    if (courseData.short_description) {
+      formData.append('short_description', courseData.short_description);
+    }
+    if (courseData.objectives) {
+      formData.append('objectives', courseData.objectives);
+    }
+    if (courseData.level) {
+      formData.append('level', courseData.level);
+    }
+    if (courseData.language) {
+      formData.append('language', courseData.language);
+    }
+    if (courseData.status) {
+      formData.append('status', courseData.status);
+    }
+    
+    // Append numeric fields (only if they have values)
+    if (courseData.duration_in_minutes !== undefined && courseData.duration_in_minutes !== null && courseData.duration_in_minutes !== '') {
+      formData.append('duration_in_minutes', courseData.duration_in_minutes);
+    }
+    if (courseData.price !== undefined && courseData.price !== null && courseData.price !== '') {
+      formData.append('price', courseData.price);
+    }
+    
+    // Append boolean fields only when explicitly set
+    if (courseData.is_free !== undefined && courseData.is_free !== null) {
+      formData.append('is_free', courseData.is_free ? 1 : 0);
+    }
+    if (courseData.certificate_available !== undefined && courseData.certificate_available !== null) {
+      formData.append('certificate_available', courseData.certificate_available ? 1 : 0);
+    }
+    if (courseData.is_featured !== undefined && courseData.is_featured !== null) {
+      formData.append('is_featured', courseData.is_featured ? 1 : 0);
+    }
+    
+    // Append file fields only when actual files are provided
     if (courseData.image instanceof File) {
       formData.append('image', courseData.image);
     }
-    
-    // Append thumbnail if provided
     if (courseData.thumbnail instanceof File) {
       formData.append('thumbnail', courseData.thumbnail);
     }
-    
-    // Append intro video if provided
     if (courseData.intro_video instanceof File) {
       formData.append('intro_video', courseData.intro_video);
     }
