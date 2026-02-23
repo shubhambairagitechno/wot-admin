@@ -5,20 +5,33 @@ const API_BASE_URL = 'https://api.wayoftrading.com/aitredding';
 // Add new course
 export const addCourse = async (courseData, token) => {
   try {
-    const url = `${API_BASE_URL}/courses/add`;
+    const url = `${API_BASE_URL}/courses/admin/course`;
     
     // Create FormData for multipart/form-data
     const formData = new FormData();
     formData.append('title', courseData.title);
+    formData.append('slug', courseData.slug);
     formData.append('description', courseData.description);
+    formData.append('short_description', courseData.short_description || '');
     formData.append('objectives', courseData.objectives);
-    formData.append('duration', courseData.duration);
+    formData.append('duration_in_minutes', courseData.duration_in_minutes);
     formData.append('level', courseData.level);
-    formData.append('status', courseData.status);
+    formData.append('language', courseData.language || 'English');
+    formData.append('price', courseData.price || 0);
+    formData.append('is_free', courseData.is_free || false);
+    formData.append('is_featured', courseData.is_featured || false);
+    formData.append('status', courseData.status || 'draft');
+    formData.append('certificate_available', courseData.certificate_available || false);
     
-    // Append image if provided
+    // Append files if provided
     if (courseData.image instanceof File) {
       formData.append('image', courseData.image);
+    }
+    if (courseData.thumbnail instanceof File) {
+      formData.append('thumbnail', courseData.thumbnail);
+    }
+    if (courseData.intro_video instanceof File) {
+      formData.append('intro_video', courseData.intro_video);
     }
 
     const response = await fetch(url, {
@@ -132,14 +145,27 @@ export const updateCourse = async (courseId, courseData, token) => {
     
     const formData = new FormData();
     formData.append('title', courseData.title);
+    formData.append('slug', courseData.slug);
     formData.append('description', courseData.description);
+    formData.append('short_description', courseData.short_description || '');
     formData.append('objectives', courseData.objectives);
-    formData.append('duration', courseData.duration);
+    formData.append('duration_in_minutes', courseData.duration_in_minutes);
     formData.append('level', courseData.level);
-    formData.append('status', courseData.status);
+    formData.append('language', courseData.language || 'English');
+    formData.append('price', courseData.price || 0);
+    formData.append('is_free', courseData.is_free || false);
+    formData.append('is_featured', courseData.is_featured || false);
+    formData.append('status', courseData.status || 'draft');
+    formData.append('certificate_available', courseData.certificate_available || false);
     
     if (courseData.image instanceof File) {
       formData.append('image', courseData.image);
+    }
+    if (courseData.thumbnail instanceof File) {
+      formData.append('thumbnail', courseData.thumbnail);
+    }
+    if (courseData.intro_video instanceof File) {
+      formData.append('intro_video', courseData.intro_video);
     }
 
     const response = await fetch(url, {
