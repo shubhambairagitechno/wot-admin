@@ -64,9 +64,9 @@ export default function EditCourse() {
         thumbnail: null,
         intro_video: null,
       });
-      setImagePreview(course.image_url);
-      setThumbnailPreview(course.thumbnail_url);
-      setVideoPreview(course.intro_video_name || null);
+      setImagePreview(course.image);
+      setThumbnailPreview(course.thumbnail);
+      setVideoPreview(course.intro_video_url ? course.intro_video_url.split('/').pop() : null);
     } else {
       Swal.fire({
         icon: 'error',

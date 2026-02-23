@@ -105,7 +105,7 @@ export const getAllCourses = async (token) => {
 // Get single course
 export const getCourseById = async (courseId, token) => {
   try {
-    const url = `${API_BASE_URL}/courses/${courseId}`;
+    const url = `${API_BASE_URL}/courses/admin/course/${courseId}`;
     
     const response = await fetch(url, {
       method: 'GET',
