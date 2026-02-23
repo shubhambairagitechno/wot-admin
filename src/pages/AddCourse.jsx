@@ -34,10 +34,17 @@ export default function AddCourse() {
   const [videoPreview, setVideoPreview] = useState(null);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    let finalValue = value;
+    
+    // Handle boolean fields from select dropdowns
+    if (['is_free', 'is_featured', 'certificate_available'].includes(name)) {
+      finalValue = value === 'true' || value === true;
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: finalValue,
     }));
   };
 
@@ -346,11 +353,11 @@ export default function AddCourse() {
                       <select 
                         className="form-select"
                         name="is_free"
-                        value={formData.is_free}
+                        value={String(formData.is_free)}
                         onChange={handleInputChange}
                       >
-                        <option value={true}>Yes</option>
-                        <option value={false}>No</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
                       </select>
                     </div>
 
@@ -359,11 +366,11 @@ export default function AddCourse() {
                       <select 
                         className="form-select"
                         name="is_featured"
-                        value={formData.is_featured}
+                        value={String(formData.is_featured)}
                         onChange={handleInputChange}
                       >
-                        <option value={false}>No</option>
-                        <option value={true}>Yes</option>
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
                       </select>
                     </div>
 
@@ -372,11 +379,11 @@ export default function AddCourse() {
                       <select 
                         className="form-select"
                         name="certificate_available"
-                        value={formData.certificate_available}
+                        value={String(formData.certificate_available)}
                         onChange={handleInputChange}
                       >
-                        <option value={false}>No</option>
-                        <option value={true}>Yes</option>
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
                       </select>
                     </div>
 

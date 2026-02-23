@@ -79,10 +79,17 @@ export default function EditCourse() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    let finalValue = value;
+    
+    // Handle boolean fields from select dropdowns
+    if (['is_free', 'is_featured', 'certificate_available'].includes(name)) {
+      finalValue = value === 'true' || value === true;
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: finalValue,
     }));
   };
 
