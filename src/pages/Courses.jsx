@@ -182,7 +182,8 @@ export default function Courses() {
                             <th>Course Title</th>
                             <th>Level</th>
                             <th>Duration</th>
-                            <th>Lessons</th>
+                            <th>Chapters</th>
+                            <th>Enrolled</th>
                             <th>Status</th>
                             <th>Action</th>
                           </tr>
@@ -193,17 +194,22 @@ export default function Courses() {
                               <td>
                                 <div className="d-flex align-items-center">
                                   <img 
-                                    src={course.image_url} 
+                                    src={course.thumbnail || course.image} 
                                     alt={course.title}
                                     style={{
                                       width: '40px',
                                       height: '40px',
                                       borderRadius: '4px',
                                       marginRight: '10px',
-                                      objectFit: 'cover'
+                                      objectFit: 'cover',
+                                      backgroundColor: '#f0f0f0'
                                     }}
                                   />
-                                  <span>{course.title}</span>
+                                  <div>
+                                    <span>{course.title}</span>
+                                    <br />
+                                    <small className="text-muted">{course.slug}</small>
+                                  </div>
                                 </div>
                               </td>
                               <td>
@@ -211,8 +217,9 @@ export default function Courses() {
                                   {course.level}
                                 </span>
                               </td>
-                              <td>{course.duration}</td>
-                              <td>{course.lesson_count || 0}</td>
+                              <td>{course.duration_in_minutes} min</td>
+                              <td>{course.total_chapters || 0}</td>
+                              <td>{course.enrolled_count || 0}</td>
                               <td>
                                 <span className={`badge ${getStatusBadge(course.status)}`}>
                                   {course.status}
