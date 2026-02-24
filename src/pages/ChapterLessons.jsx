@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
 import { getCourseById } from '../api/courses';
+import { getLessonsByChapter } from '../api/lessons';
 import GlobalLoader from '../components/GlobalLoader';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
@@ -26,70 +27,57 @@ export default function ChapterLessons() {
   const fetchData = async () => {
     setIsLoading(true);
     
-    // Fetch course details
-    const courseResult = await getCourseById(courseId, token);
-    if (courseResult.success) {
-      setCourse(courseResult.data);
+    try {
+      // Fetch course details
+      const courseResult = await getCourseById(courseId, token);
+      if (courseResult.success) {
+        setCourse(courseResult.data);
+      }
+      
+      // Fetch lessons for this chapter from API
+      const lessonsResult = await getLessonsByChapter(chapterId, token);
+      
+      if (lessonsResult.success) {
+        // Extract chapter info from lessons if available
+        if (lessonsResult.chapterId) {
+          setChapter({
+            id: chapterId,
+            title: `Chapter ${chapterId}`,
+            order_number: lessonsResult.chapterId
+          });
+        }
+        
+        // Process lessons data from API
+        const processedLessons = lessonsResult.lessons.map(lesson => ({
+          id: lesson.id,
+          title: lesson.title,
+          content_type: lesson.content_type || 'Text',
+          order_number: lesson.order_number,
+          duration: lesson.duration || '-',
+          status: lesson.status || 'active',
+          created_at: lesson.created_at,
+          description: lesson.description
+        }));
+        
+        setLessons(processedLessons);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: lessonsResult.message || 'Failed to fetch lessons',
+        });
+        setLessons([]);
+      }
+    } catch (error) {
+      console.error('[v0] Error fetching lessons:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while fetching lessons',
+      });
+      setLessons([]);
     }
     
-    // TODO: Fetch chapter details and lessons from API when endpoint is available
-    // For now using demo data
-    setChapter({
-      id: chapterId,
-      title: 'Chapter 1: Market Structure Basics',
-      description: 'Understanding market structure and price action',
-      order_number: 1
-    });
-
-    const demoLessons = [
-      {
-        id: 1,
-        title: 'Introduction to Market Structure',
-        content_type: 'Video',
-        order_number: 1,
-        duration: '12:45',
-        status: 'Published',
-        created_at: '2024-01-15T10:30:00'
-      },
-      {
-        id: 2,
-        title: 'Identifying Market Trends',
-        content_type: 'Video',
-        order_number: 2,
-        duration: '18:20',
-        status: 'Published',
-        created_at: '2024-01-15T11:00:00'
-      },
-      {
-        id: 3,
-        title: 'Price Action Patterns',
-        content_type: 'Text',
-        order_number: 3,
-        duration: '-',
-        status: 'Published',
-        created_at: '2024-01-15T14:15:00'
-      },
-      {
-        id: 4,
-        title: 'Market Structure Worksheet',
-        content_type: 'PDF',
-        order_number: 4,
-        duration: '-',
-        status: 'Published',
-        created_at: '2024-01-16T09:00:00'
-      },
-      {
-        id: 5,
-        title: 'Live Trading Example',
-        content_type: 'Video',
-        order_number: 5,
-        duration: '25:30',
-        status: 'Review',
-        created_at: '2024-01-16T13:45:00'
-      }
-    ];
-
-    setLessons(demoLessons);
     setIsLoading(false);
   };
 
