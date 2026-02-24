@@ -36,6 +36,43 @@ export const getLessonsByCourse = async (courseId, token) => {
   }
 };
 
+// Get all lessons for a chapter (admin endpoint)
+export const getLessonsByChapter = async (chapterId, token) => {
+  try {
+    const url = `${API_BASE_URL}/courses/admin/chapter/${chapterId}/lessons`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return {
+        success: true,
+        chapterId: data.chapter_id,
+        lessons: data.lessons || [],
+        message: data.message,
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to fetch chapter lessons',
+      };
+    }
+  } catch (error) {
+    console.error('Get Chapter Lessons API Error:', error);
+    return {
+      success: false,
+      message: error.message || 'An error occurred while fetching chapter lessons',
+    };
+  }
+};
+
 // Get single lesson
 export const getLessonById = async (lessonId, token) => {
   try {
