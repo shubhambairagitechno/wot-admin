@@ -115,23 +115,26 @@ export default function AddLesson() {
       return;
     }
 
-    if (!formData.media) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Validation Error',
-        text: 'Please upload media file',
-      });
-      return;
-    }
-
-    // If content_type is text, content is required
-    if (formData.content_type === 'text' && !formData.content.trim()) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Validation Error',
-        text: 'Please enter text content',
-      });
-      return;
+    // If content_type is text, content is required (media is optional)
+    if (formData.content_type === 'text') {
+      if (!formData.content.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Validation Error',
+          text: 'Please enter text content',
+        });
+        return;
+      }
+    } else {
+      // For non-text content types, media is required
+      if (!formData.media) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Validation Error',
+          text: 'Please upload media file',
+        });
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -285,14 +288,20 @@ export default function AddLesson() {
                     )}
 
                     <div className="col-md-12">
-                      <label className="form-label">Media File <span className="text-danger">*</span></label>
+                      <label className="form-label">
+                        Media File 
+                        {formData.content_type !== 'text' && <span className="text-danger">*</span>}
+                      </label>
                       <input 
                         type="file" 
                         className="form-control"
                         onChange={handleMediaChange}
                         accept=".mp4,.webm,.mp3,.doc,.docx,.pdf,.jpg,.jpeg,.png,.gif"
-                        required={!chapterId}
+                        required={formData.content_type !== 'text'}
                       />
+                      {formData.content_type === 'text' && (
+                        <small className="text-muted d-block mt-1">Optional for text content</small>
+                      )}
                       {mediaPreview && (
                         <div className="mt-2">
                           <small className="text-muted">Selected: {mediaPreview}</small>
