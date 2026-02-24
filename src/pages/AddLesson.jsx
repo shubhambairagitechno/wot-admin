@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { addLesson } from '../api/lessons';
+import { addLesson, createLesson } from '../api/lessons';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
@@ -9,10 +9,11 @@ import Footer from '../components/Footer';
 
 export default function AddLesson() {
   const navigate = useNavigate();
-  const { courseId } = useParams();
+  const { courseId, categoryId, chapterId } = useParams();
   const { token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [mediaPreview, setMediaPreview] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -20,7 +21,16 @@ export default function AddLesson() {
     content_type: 'text',
     duration: '',
     order: '',
+    lesson_number: '',
+    xp_points: 0,
+    reward_points: 0,
+    is_preview: false,
+    is_locked: false,
+    quiz_available: false,
+    status: 'active',
+    order_number: 0,
     media: null,
+    thumbnail: null,
   });
 
   const contentTypeOptions = ['text', 'video', 'audio', 'doc', 'pdf'];
@@ -44,8 +54,21 @@ export default function AddLesson() {
     }
   };
 
+  const handleThumbnailChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        thumbnail: file,
+      }));
+      setThumbnailPreview(file.name);
+    }
+  };
+
   const handleCancel = () => {
-    if (courseId) {
+    if (chapterId && categoryId) {
+      navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lessons`);
+    } else if (courseId) {
       navigate(`/course/${courseId}/lessons`);
     } else {
       navigate('/lessons');
@@ -113,7 +136,14 @@ export default function AddLesson() {
 
     setIsLoading(true);
 
-    const result = await addLesson(courseId || 1, formData, token);
+    let result;
+    
+    // Use createLesson API for chapter lessons, addLesson for course lessons
+    if (chapterId && categoryId) {
+      result = await createLesson(chapterId, formData, token);
+    } else {
+      result = await addLesson(courseId || 1, formData, token);
+    }
 
     if (result.success) {
       Swal.fire({
@@ -124,7 +154,9 @@ export default function AddLesson() {
         timerProgressBar: true,
         showConfirmButton: false,
       }).then(() => {
-        if (courseId) {
+        if (chapterId && categoryId) {
+          navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lessons`);
+        } else if (courseId) {
           navigate(`/course/${courseId}/lessons`);
         } else {
           navigate('/lessons');
@@ -259,7 +291,7 @@ export default function AddLesson() {
                         className="form-control"
                         onChange={handleMediaChange}
                         accept=".mp4,.webm,.mp3,.doc,.docx,.pdf,.jpg,.jpeg,.png,.gif"
-                        required
+                        required={!chapterId}
                       />
                       {mediaPreview && (
                         <div className="mt-2">
@@ -267,6 +299,127 @@ export default function AddLesson() {
                         </div>
                       )}
                     </div>
+
+                    {chapterId && (
+                      <>
+                        <div className="col-md-12">
+                          <label className="form-label">Thumbnail (Optional)</label>
+                          <input 
+                            type="file" 
+                            className="form-control"
+                            onChange={handleThumbnailChange}
+                            accept=".jpg,.jpeg,.png,.gif"
+                          />
+                          {thumbnailPreview && (
+                            <div className="mt-2">
+                              <small className="text-muted">Selected: {thumbnailPreview}</small>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="form-label">Lesson Number</label>
+                          <input 
+                            type="number" 
+                            className="form-control" 
+                            placeholder="0"
+                            name="lesson_number"
+                            value={formData.lesson_number}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="form-label">XP Points</label>
+                          <input 
+                            type="number" 
+                            className="form-control" 
+                            placeholder="0"
+                            name="xp_points"
+                            value={formData.xp_points}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="form-label">Reward Points</label>
+                          <input 
+                            type="number" 
+                            className="form-control" 
+                            placeholder="0"
+                            name="reward_points"
+                            value={formData.reward_points}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+
+                        <div className="col-md-6">
+                          <label className="form-label">Order Number</label>
+                          <input 
+                            type="number" 
+                            className="form-control" 
+                            placeholder="0"
+                            name="order_number"
+                            value={formData.order_number}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+
+                        <div className="col-md-4">
+                          <label className="form-label">
+                            <input 
+                              type="checkbox" 
+                              className="form-check-input me-2"
+                              name="is_preview"
+                              checked={formData.is_preview}
+                              onChange={(e) => setFormData(prev => ({...prev, is_preview: e.target.checked}))}
+                            />
+                            Is Preview
+                          </label>
+                        </div>
+
+                        <div className="col-md-4">
+                          <label className="form-label">
+                            <input 
+                              type="checkbox" 
+                              className="form-check-input me-2"
+                              name="is_locked"
+                              checked={formData.is_locked}
+                              onChange={(e) => setFormData(prev => ({...prev, is_locked: e.target.checked}))}
+                            />
+                            Is Locked
+                          </label>
+                        </div>
+
+                        <div className="col-md-4">
+                          <label className="form-label">
+                            <input 
+                              type="checkbox" 
+                              className="form-check-input me-2"
+                              name="quiz_available"
+                              checked={formData.quiz_available}
+                              onChange={(e) => setFormData(prev => ({...prev, quiz_available: e.target.checked}))}
+                            />
+                            Quiz Available
+                          </label>
+                        </div>
+
+                        <div className="col-md-12">
+                          <label className="form-label">Status</label>
+                          <select 
+                            className="form-select"
+                            name="status"
+                            value={formData.status}
+                            onChange={handleInputChange}
+                          >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="draft">Draft</option>
+                            <option value="published">Published</option>
+                          </select>
+                        </div>
+                      </>
+                    )}
 
                     <div className="col-md-12 text-end mt-3">
                       <button 
