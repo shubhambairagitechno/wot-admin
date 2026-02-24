@@ -22,16 +22,11 @@ export default function AddCategory() {
   });
 
   const handleInputChange = (e) => {
-    const { name, value, type } = e.target;
-    let finalValue = value;
-    
-    if (name === 'order_number') {
-      finalValue = parseInt(value) || 0;
-    }
+    const { name, value } = e.target;
     
     setFormData(prev => ({
       ...prev,
-      [name]: finalValue,
+      [name]: value,
     }));
   };
 
@@ -135,7 +130,7 @@ export default function AddCategory() {
               <div className="card">
                 <div className="card-body">
                   <form onSubmit={handleSubmit} className="row g-3">
-                    <div className="col-md-8">
+                    <div className="col-md-12">
                       <label className="form-label">Category Name <span className="text-danger">*</span></label>
                       <input 
                         type="text" 
@@ -145,19 +140,6 @@ export default function AddCategory() {
                         value={formData.name}
                         onChange={handleInputChange}
                         required
-                      />
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className="form-label">Order Number</label>
-                      <input 
-                        type="number" 
-                        className="form-control" 
-                        placeholder="0"
-                        name="order_number"
-                        value={formData.order_number}
-                        onChange={handleInputChange}
-                        min="0"
                       />
                     </div>
 
