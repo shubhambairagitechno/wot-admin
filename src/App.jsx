@@ -10,6 +10,7 @@ import CourseLessons from './pages/CourseLessons'
 import EditLesson from './pages/EditLesson'
 import Lessons from './pages/Lessons'
 import Categories from './pages/Categories'
+import AddCategory from './pages/AddCategory'
 import Chapters from './pages/Chapters'
 import ChapterLessons from './pages/ChapterLessons'
 import Quizes from './pages/Quizes'
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/course/:courseId/lesson/:lessonId/edit" element={<ProtectedRoute><EditLesson /></ProtectedRoute>} />
         <Route path="/course/:courseId/add-lesson" element={<ProtectedRoute><AddLesson /></ProtectedRoute>} />
         <Route path="/course/:courseId/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
+        <Route path="/course/:courseId/add-category" element={<ProtectedRoute><AddCategory /></ProtectedRoute>} />
         <Route path="/course/:courseId/category/:categoryId/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
         <Route path="/course/:courseId/category/:categoryId/chapter/:chapterId/lessons" element={<ProtectedRoute><ChapterLessons /></ProtectedRoute>} />
         <Route path="/lessons" element={<ProtectedRoute><Lessons /></ProtectedRoute>} />
