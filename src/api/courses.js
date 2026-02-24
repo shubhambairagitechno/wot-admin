@@ -368,3 +368,39 @@ export const createChapter = async (categoryId, chapterData, token) => {
     };
   }
 };
+
+// Get chapters by category ID
+export const getChaptersByCategory = async (categoryId, token) => {
+  try {
+    const url = `${API_BASE_URL}/courses/admin/category/${categoryId}/chapters`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return {
+        success: true,
+        data: data.chapters || [],
+        message: 'Chapters fetched successfully',
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to fetch chapters',
+      };
+    }
+  } catch (error) {
+    console.error('Get Chapters API Error:', error);
+    return {
+      success: false,
+      message: error.message || 'An error occurred while fetching chapters',
+    };
+  }
+};
