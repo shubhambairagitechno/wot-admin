@@ -271,3 +271,52 @@ export const getCategoriesByCourse = async (courseId, token) => {
     };
   }
 };
+
+// Create category for a course
+export const createCategory = async (courseId, categoryData, token) => {
+  try {
+    const url = `${API_BASE_URL}/courses/admin/course/${courseId}/category`;
+    
+    // Create FormData for multipart/form-data
+    const formData = new FormData();
+    formData.append('name', categoryData.name);
+    formData.append('description', categoryData.description || '');
+    formData.append('order_number', categoryData.order_number || 0);
+    formData.append('status', categoryData.status || 'active');
+    
+    // Append image if provided
+    if (categoryData.image instanceof File) {
+      formData.append('image', categoryData.image);
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': 'application/json',
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return {
+        success: true,
+        data: data.data,
+        message: data.message,
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to create category',
+      };
+    }
+  } catch (error) {
+    console.error('Create Category API Error:', error);
+    return {
+      success: false,
+      message: error.message || 'An error occurred while creating category',
+    };
+  }
+};
