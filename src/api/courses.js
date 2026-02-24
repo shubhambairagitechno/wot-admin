@@ -320,3 +320,51 @@ export const createCategory = async (courseId, categoryData, token) => {
     };
   }
 };
+
+// Create chapter for a category
+export const createChapter = async (categoryId, chapterData, token) => {
+  try {
+    const url = `${API_BASE_URL}/courses/admin/category/${categoryId}/chapter`;
+    
+    // Create URLSearchParams for application/x-www-form-urlencoded
+    const params = new URLSearchParams();
+    params.append('title', chapterData.title);
+    params.append('description', chapterData.description || '');
+    params.append('chapter_number', chapterData.chapter_number || 0);
+    params.append('duration', chapterData.duration || 0);
+    params.append('total_duration', chapterData.total_duration || 0);
+    params.append('is_locked', chapterData.is_locked || false);
+    params.append('order_number', chapterData.order_number || 0);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
+    });
+
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return {
+        success: true,
+        data: data.data,
+        message: data.message,
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to create chapter',
+      };
+    }
+  } catch (error) {
+    console.error('Create Chapter API Error:', error);
+    return {
+      success: false,
+      message: error.message || 'An error occurred while creating chapter',
+    };
+  }
+};
