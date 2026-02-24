@@ -157,7 +157,7 @@ export const deleteLesson = async (lessonId, token) => {
   }
 };
 
-// Add new lesson
+// Add new lesson (legacy endpoint)
 export const addLesson = async (courseId, lessonData, token) => {
   try {
     const url = `${API_BASE_URL}/courses/${courseId}/lessons/add`;
@@ -202,6 +202,75 @@ export const addLesson = async (courseId, lessonData, token) => {
     return {
       success: false,
       message: error.message || 'An error occurred while adding lesson',
+    };
+  }
+};
+
+// Create lesson with full payload (new admin endpoint)
+export const createLesson = async (chapterId, lessonData, token) => {
+  try {
+    const url = `${API_BASE_URL}/courses/admin/chapter/${chapterId}/lesson`;
+    
+    const formData = new FormData();
+    
+    // Required fields
+    formData.append('title', lessonData.title);
+    formData.append('description', lessonData.description);
+    
+    // Optional text content
+    if (lessonData.content) {
+      formData.append('content', lessonData.content);
+    }
+    
+    // Lesson configuration fields
+    formData.append('lesson_number', lessonData.lesson_number || 0);
+    formData.append('duration', lessonData.duration || '');
+    
+    // Extended fields from payload
+    formData.append('xp_points', lessonData.xp_points || 0);
+    formData.append('reward_points', lessonData.reward_points || 0);
+    formData.append('is_preview', lessonData.is_preview || false);
+    formData.append('is_locked', lessonData.is_locked || false);
+    formData.append('quiz_available', lessonData.quiz_available || false);
+    formData.append('status', lessonData.status || 'active');
+    formData.append('order_number', lessonData.order_number || 0);
+    
+    // File uploads
+    if (lessonData.thumbnail instanceof File) {
+      formData.append('thumbnail', lessonData.thumbnail);
+    }
+    if (lessonData.media instanceof File) {
+      formData.append('media', lessonData.media);
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': 'application/json',
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return {
+        success: true,
+        data: data.data,
+        message: data.message,
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to create lesson',
+      };
+    }
+  } catch (error) {
+    console.error('Create Lesson API Error:', error);
+    return {
+      success: false,
+      message: error.message || 'An error occurred while creating lesson',
     };
   }
 };
