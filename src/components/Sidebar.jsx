@@ -65,25 +65,32 @@ export default function Sidebar() {
             </li>
 
             <li>
+              <Link to="/lessons" className={isActive("/lessons")}>
+                <i className="fas fa-list me-2"></i>
+                <span>Lessons</span>
+              </Link>
+            </li>
+
+            <li>
               <Link to="/quizes" className={isActive("/quizes")}>
                 <i className="fas fa-file-alt me-2"></i>
                 <span>Quizzes</span>
               </Link>
             </li>
 
-            {/* <li>
+            <li>
               <Link to="/notifications" className={isActive("/notifications")}>
                 <i className="fas fa-bell me-2"></i>
                 <span>Notifications</span>
               </Link>
-            </li> */}
+            </li>
 
-            {/* <li>
+            <li>
               <Link to="/settings" className={isActive("/settings")}>
                 <i className="fas fa-cog me-2"></i>
                 <span>Settings</span>
               </Link>
-            </li> */}
+            </li>
 
             <li className="border-top mt-3 pt-3">
               <button 

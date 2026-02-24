@@ -16,14 +16,25 @@ export default function EditCourse() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
+    slug: '',
     description: '',
+    short_description: '',
     objectives: '',
-    duration: '',
-    level: 'beginner',
-    status: 'active',
+    duration_in_minutes: '',
+    level: 'Beginner',
+    language: 'English',
+    price: 0,
+    is_free: true,
+    is_featured: false,
+    status: 'draft',
+    certificate_available: false,
     image: null,
+    thumbnail: null,
+    intro_video: null,
   });
   const [imagePreview, setImagePreview] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
 
   useEffect(() => {
     fetchCourseData();
@@ -37,14 +48,25 @@ export default function EditCourse() {
       const course = result.data;
       setFormData({
         title: course.title || '',
+        slug: course.slug || '',
         description: course.description || '',
+        short_description: course.short_description || '',
         objectives: course.objectives || '',
-        duration: course.duration || '',
-        level: course.level || 'beginner',
-        status: course.status || 'active',
+        duration_in_minutes: course.duration_in_minutes || '',
+        level: course.level || 'Beginner',
+        language: course.language || 'English',
+        price: course.price || 0,
+        is_free: course.is_free !== undefined ? course.is_free : true,
+        is_featured: course.is_featured !== undefined ? course.is_featured : false,
+        status: course.status || 'draft',
+        certificate_available: course.certificate_available !== undefined ? course.certificate_available : false,
         image: null,
+        thumbnail: null,
+        intro_video: null,
       });
-      setImagePreview(course.image_url);
+      setImagePreview(course.image);
+      setThumbnailPreview(course.thumbnail);
+      setVideoPreview(course.intro_video_url ? course.intro_video_url.split('/').pop() : null);
     } else {
       Swal.fire({
         icon: 'error',
@@ -57,10 +79,17 @@ export default function EditCourse() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    let finalValue = value;
+    
+    // Handle boolean fields from select dropdowns
+    if (['is_free', 'is_featured', 'certificate_available'].includes(name)) {
+      finalValue = value === 'true' || value === true;
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: finalValue,
     }));
   };
 
@@ -81,6 +110,35 @@ export default function EditCourse() {
     }
   };
 
+  const handleThumbnailChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        thumbnail: file,
+      }));
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        intro_video: file,
+      }));
+      
+      setVideoPreview(file.name);
+    }
+  };
+
   const handleCancel = () => {
     navigate('/courses');
   };
@@ -94,6 +152,15 @@ export default function EditCourse() {
         icon: 'warning',
         title: 'Validation Error',
         text: 'Please enter course title',
+      });
+      return;
+    }
+
+    if (!formData.slug.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'Please enter course slug',
       });
       return;
     }
@@ -116,11 +183,11 @@ export default function EditCourse() {
       return;
     }
 
-    if (!formData.duration.trim()) {
+    if (!formData.duration_in_minutes) {
       Swal.fire({
         icon: 'warning',
         title: 'Validation Error',
-        text: 'Please enter course duration',
+        text: 'Please enter course duration in minutes',
       });
       return;
     }
@@ -208,6 +275,19 @@ export default function EditCourse() {
                     </div>
 
                     <div className="col-md-4">
+                      <label className="form-label">Slug <span className="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="course-slug"
+                        name="slug"
+                        value={formData.slug}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-4">
                       <label className="form-label">Level <span className="text-danger">*</span></label>
                       <select
                         className="form-select"
@@ -215,26 +295,39 @@ export default function EditCourse() {
                         value={formData.level}
                         onChange={handleInputChange}
                       >
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
                       </select>
                     </div>
 
-                    <div className="col-md-6">
-                      <label className="form-label">Duration <span className="text-danger">*</span></label>
+                    <div className="col-md-4">
+                      <label className="form-label">Duration (minutes) <span className="text-danger">*</span></label>
                       <input
-                        type="text"
+                        type="number"
                         className="form-control"
-                        placeholder="e.g., 5 weeks"
-                        name="duration"
-                        value={formData.duration}
+                        placeholder="e.g., 300"
+                        name="duration_in_minutes"
+                        value={formData.duration_in_minutes}
                         onChange={handleInputChange}
                         required
                       />
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-4">
+                      <label className="form-label">Language <span className="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="e.g., English"
+                        name="language"
+                        value={formData.language}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-4">
                       <label className="form-label">Status <span className="text-danger">*</span></label>
                       <select
                         className="form-select"
@@ -242,8 +335,8 @@ export default function EditCourse() {
                         value={formData.status}
                         onChange={handleInputChange}
                       >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
                       </select>
                     </div>
 
@@ -261,6 +354,18 @@ export default function EditCourse() {
                     </div>
 
                     <div className="col-md-12">
+                      <label className="form-label">Short Description</label>
+                      <textarea 
+                        className="form-control" 
+                        rows="2" 
+                        placeholder="Enter short course description"
+                        name="short_description"
+                        value={formData.short_description}
+                        onChange={handleInputChange}
+                      ></textarea>
+                    </div>
+
+                    <div className="col-md-12">
                       <label className="form-label">Course Objectives <span className="text-danger">*</span></label>
                       <textarea
                         className="form-control"
@@ -273,8 +378,61 @@ export default function EditCourse() {
                       ></textarea>
                     </div>
 
+                    <div className="col-md-6">
+                      <label className="form-label">Price</label>
+                      <input 
+                        type="number" 
+                        className="form-control"
+                        placeholder="0"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Is Free?</label>
+                      <select 
+                        className="form-select"
+                        name="is_free"
+                        value={formData.is_free}
+                        onChange={handleInputChange}
+                      >
+                        <option value={true}>Yes</option>
+                        <option value={false}>No</option>
+                      </select>
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Featured</label>
+                      <select 
+                        className="form-select"
+                        name="is_featured"
+                        value={formData.is_featured}
+                        onChange={handleInputChange}
+                      >
+                        <option value={false}>No</option>
+                        <option value={true}>Yes</option>
+                      </select>
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Certificate Available</label>
+                      <select 
+                        className="form-select"
+                        name="certificate_available"
+                        value={formData.certificate_available}
+                        onChange={handleInputChange}
+                      >
+                        <option value={false}>No</option>
+                        <option value={true}>Yes</option>
+                      </select>
+                    </div>
+
                     <div className="col-md-12">
-                      <label className="form-label">Course Thumbnail</label>
+                      <label className="form-label">Course Image</label>
                       <input
                         type="file"
                         className="form-control"
@@ -285,9 +443,43 @@ export default function EditCourse() {
                         <div className="mt-3">
                           <img
                             src={imagePreview}
-                            alt="Preview"
+                            alt="Image Preview"
                             style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: '4px' }}
                           />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="col-md-12">
+                      <label className="form-label">Course Thumbnail</label>
+                      <input
+                        type="file"
+                        className="form-control"
+                        accept="image/*"
+                        onChange={handleThumbnailChange}
+                      />
+                      {thumbnailPreview && (
+                        <div className="mt-3">
+                          <img
+                            src={thumbnailPreview}
+                            alt="Thumbnail Preview"
+                            style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: '4px' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="col-md-12">
+                      <label className="form-label">Intro Video</label>
+                      <input
+                        type="file"
+                        className="form-control"
+                        accept="video/*"
+                        onChange={handleVideoChange}
+                      />
+                      {videoPreview && (
+                        <div className="mt-3">
+                          <p className="text-muted">Selected: {videoPreview}</p>
                         </div>
                       )}
                     </div>

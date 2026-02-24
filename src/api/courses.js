@@ -5,20 +5,33 @@ const API_BASE_URL = 'https://api.wayoftrading.com/aitredding';
 // Add new course
 export const addCourse = async (courseData, token) => {
   try {
-    const url = `${API_BASE_URL}/courses/add`;
+    const url = `${API_BASE_URL}/courses/admin/course`;
     
     // Create FormData for multipart/form-data
     const formData = new FormData();
     formData.append('title', courseData.title);
+    formData.append('slug', courseData.slug);
     formData.append('description', courseData.description);
+    formData.append('short_description', courseData.short_description || '');
     formData.append('objectives', courseData.objectives);
-    formData.append('duration', courseData.duration);
+    formData.append('duration_in_minutes', courseData.duration_in_minutes);
     formData.append('level', courseData.level);
-    formData.append('status', courseData.status);
+    formData.append('language', courseData.language || 'English');
+    formData.append('price', courseData.price || 0);
+    formData.append('is_free', courseData.is_free || false);
+    formData.append('is_featured', courseData.is_featured || false);
+    formData.append('status', courseData.status || 'draft');
+    formData.append('certificate_available', courseData.certificate_available || false);
     
-    // Append image if provided
+    // Append files if provided
     if (courseData.image instanceof File) {
       formData.append('image', courseData.image);
+    }
+    if (courseData.thumbnail instanceof File) {
+      formData.append('thumbnail', courseData.thumbnail);
+    }
+    if (courseData.intro_video instanceof File) {
+      formData.append('intro_video', courseData.intro_video);
     }
 
     const response = await fetch(url, {
@@ -56,7 +69,7 @@ export const addCourse = async (courseData, token) => {
 // Get all courses
 export const getAllCourses = async (token) => {
   try {
-    const url = `${API_BASE_URL}/courses/`;
+    const url = `${API_BASE_URL}/courses/admin/courses`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -92,7 +105,7 @@ export const getAllCourses = async (token) => {
 // Get single course
 export const getCourseById = async (courseId, token) => {
   try {
-    const url = `${API_BASE_URL}/courses/${courseId}`;
+    const url = `${API_BASE_URL}/courses/admin/course/${courseId}`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -128,18 +141,31 @@ export const getCourseById = async (courseId, token) => {
 // Update course
 export const updateCourse = async (courseId, courseData, token) => {
   try {
-    const url = `${API_BASE_URL}/courses/${courseId}/update`;
+    const url = `${API_BASE_URL}/courses/admin/course/${courseId}`;
     
     const formData = new FormData();
     formData.append('title', courseData.title);
+    formData.append('slug', courseData.slug);
     formData.append('description', courseData.description);
+    formData.append('short_description', courseData.short_description || '');
     formData.append('objectives', courseData.objectives);
-    formData.append('duration', courseData.duration);
+    formData.append('duration_in_minutes', courseData.duration_in_minutes);
     formData.append('level', courseData.level);
-    formData.append('status', courseData.status);
+    formData.append('language', courseData.language || 'English');
+    formData.append('price', courseData.price || 0);
+    formData.append('is_free', String(courseData.is_free === true || courseData.is_free === 'true'));
+    formData.append('is_featured', String(courseData.is_featured === true || courseData.is_featured === 'true'));
+    formData.append('status', courseData.status || 'draft');
+    formData.append('certificate_available', String(courseData.certificate_available === true || courseData.certificate_available === 'true'));
     
     if (courseData.image instanceof File) {
       formData.append('image', courseData.image);
+    }
+    if (courseData.thumbnail instanceof File) {
+      formData.append('thumbnail', courseData.thumbnail);
+    }
+    if (courseData.intro_video instanceof File) {
+      formData.append('intro_video', courseData.intro_video);
     }
 
     const response = await fetch(url, {
@@ -206,6 +232,42 @@ export const deleteCourse = async (courseId, token) => {
     return {
       success: false,
       message: error.message || 'An error occurred while deleting course',
+    };
+  }
+};
+
+// Get categories by course ID
+export const getCategoriesByCourse = async (courseId, token) => {
+  try {
+    const url = `${API_BASE_URL}/courses/admin/course/category/${courseId}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return {
+        success: true,
+        data: data.categories || [],
+        message: data.message,
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to fetch categories',
+      };
+    }
+  } catch (error) {
+    console.error('Get Categories API Error:', error);
+    return {
+      success: false,
+      message: error.message || 'An error occurred while fetching categories',
     };
   }
 };

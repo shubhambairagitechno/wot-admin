@@ -1,60 +1,95 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
-import { getAllCourses } from '../api/courses';
-import { getLessonsByCourse, deleteLesson } from '../api/lessons';
+import { getCourseById } from '../api/courses';
 import GlobalLoader from '../components/GlobalLoader';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 
-export default function Lessons() {
+export default function ChapterLessons() {
   const { token } = useAuth();
+  const { courseId, categoryId, chapterId } = useParams();
   const navigate = useNavigate();
   const [lessons, setLessons] = useState([]);
-  const [coursesMap, setCoursesMap] = useState({});
+  const [chapter, setChapter] = useState(null);
+  const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchLessons();
-  }, []);
+    if (courseId && categoryId && chapterId) {
+      fetchData();
+    }
+  }, [courseId, categoryId, chapterId]);
 
-  const fetchLessons = async () => {
+  const fetchData = async () => {
     setIsLoading(true);
     
-    // First fetch all courses to map IDs to titles
-    const coursesResult = await getAllCourses(token);
-    let coursesList = {};
-    
-    if (coursesResult.success) {
-      coursesResult.data?.forEach(course => {
-        coursesList[course.id] = course;
-      });
-      setCoursesMap(coursesList);
+    // Fetch course details
+    const courseResult = await getCourseById(courseId, token);
+    if (courseResult.success) {
+      setCourse(courseResult.data);
     }
+    
+    // TODO: Fetch chapter details and lessons from API when endpoint is available
+    // For now using demo data
+    setChapter({
+      id: chapterId,
+      title: 'Chapter 1: Market Structure Basics',
+      description: 'Understanding market structure and price action',
+      order_number: 1
+    });
 
-    // Fetch lessons for all courses
-    const allLessons = [];
-    if (coursesResult.success && coursesResult.data?.length > 0) {
-      for (const course of coursesResult.data) {
-        const lessonsResult = await getLessonsByCourse(course.id, token);
-        if (lessonsResult.success && lessonsResult.data?.length > 0) {
-          allLessons.push(...lessonsResult.data.map(lesson => ({
-            ...lesson,
-            courseId: course.id,
-            courseName: course.title
-          })));
-        }
+    const demoLessons = [
+      {
+        id: 1,
+        title: 'Introduction to Market Structure',
+        content_type: 'Video',
+        order_number: 1,
+        duration: '12:45',
+        status: 'Published',
+        created_at: '2024-01-15T10:30:00'
+      },
+      {
+        id: 2,
+        title: 'Identifying Market Trends',
+        content_type: 'Video',
+        order_number: 2,
+        duration: '18:20',
+        status: 'Published',
+        created_at: '2024-01-15T11:00:00'
+      },
+      {
+        id: 3,
+        title: 'Price Action Patterns',
+        content_type: 'Text',
+        order_number: 3,
+        duration: '-',
+        status: 'Published',
+        created_at: '2024-01-15T14:15:00'
+      },
+      {
+        id: 4,
+        title: 'Market Structure Worksheet',
+        content_type: 'PDF',
+        order_number: 4,
+        duration: '-',
+        status: 'Published',
+        created_at: '2024-01-16T09:00:00'
+      },
+      {
+        id: 5,
+        title: 'Live Trading Example',
+        content_type: 'Video',
+        order_number: 5,
+        duration: '25:30',
+        status: 'Review',
+        created_at: '2024-01-16T13:45:00'
       }
-    }
+    ];
 
-    if (allLessons.length > 0) {
-      setLessons(allLessons);
-    } else {
-      setLessons([]);
-    }
-    
+    setLessons(demoLessons);
     setIsLoading(false);
   };
 
@@ -80,7 +115,19 @@ export default function Lessons() {
     return iconMap[contentType?.toLowerCase()] || 'fas fa-file';
   };
 
-  const handleDeleteLesson = (lessonId, lessonTitle, courseId) => {
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      active: 'bg-success',
+      inactive: 'bg-danger',
+      draft: 'bg-warning',
+      published: 'bg-success',
+      blocked: 'bg-danger',
+      review: 'bg-info',
+    };
+    return statusMap[status?.toLowerCase()] || 'bg-secondary';
+  };
+
+  const handleDeleteLesson = (lessonId, lessonTitle) => {
     Swal.fire({
       title: 'Delete Lesson',
       text: `Are you sure you want to delete "${lessonTitle}"? This action cannot be undone.`,
@@ -92,26 +139,12 @@ export default function Lessons() {
       cancelButtonText: 'Cancel',
     }).then(async (result) => {
       if (result.isConfirmed) {
-        const deleteResult = await deleteLesson(lessonId, token);
-
-        if (deleteResult.success) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Deleted',
-            text: deleteResult.message || 'Lesson deleted successfully',
-            timer: 1500,
-            timerProgressBar: true,
-            showConfirmButton: false,
-          }).then(() => {
-            fetchLessons();
-          });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Failed to Delete',
-            text: deleteResult.message || 'An error occurred while deleting the lesson',
-          });
-        }
+        // TODO: Implement delete lesson API call when endpoint is available
+        Swal.fire({
+          icon: 'info',
+          title: 'Delete Feature',
+          text: 'Delete lesson feature will be available soon',
+        });
       }
     });
   };
@@ -125,10 +158,21 @@ export default function Lessons() {
           <div className="page-header">
             <div className="content-page-header">
               <div>
-                <h5>Lessons</h5>
+                <h5>Lessons{chapter && ` - ${chapter.title}`}</h5>
+                {chapter?.description && (
+                  <p className="text-muted small">{chapter.description}</p>
+                )}
               </div>
               <div className="list-btn">
                 <ul className="filter-list">
+                  <li>
+                    <button 
+                      className="btn btn-outline-secondary"
+                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapters`)}
+                    >
+                      <i className="fas fa-arrow-left me-2"></i>Back to Chapters
+                    </button>
+                  </li>
                   <li>
                     <div className="dropdown dropdown-action" data-bs-placement="bottom" data-bs-original-title="Download">
                       <a href="#" className="btn btn-primary" data-bs-toggle="dropdown" aria-expanded="false">
@@ -150,6 +194,14 @@ export default function Lessons() {
                       </div>
                     </div>
                   </li>
+                  <li>
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/add-lesson`)}
+                    >
+                      <i className="fa fa-plus-circle me-2"></i>Add Lesson
+                    </button>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -163,7 +215,7 @@ export default function Lessons() {
                     <GlobalLoader visible={true} size="medium" />
                   ) : lessons.length === 0 ? (
                     <div className="text-center py-5">
-                      <p className="text-muted">No lessons found. Create lessons within courses.</p>
+                      <p className="text-muted">No lessons found for this chapter</p>
                     </div>
                   ) : (
                     <div className="table-responsive">
@@ -171,21 +223,24 @@ export default function Lessons() {
                         <thead>
                           <tr>
                             <th>Lesson Title</th>
-                            <th>Course</th>
-                            <th>Type</th>
                             <th>Order</th>
+                            <th>Type</th>
                             <th>Duration</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
                             <th>Action</th>
                           </tr>
                         </thead>
                         <tbody>
                           {lessons.map((lesson) => (
                             <tr key={lesson.id}>
-                              <td>{lesson.title}</td>
                               <td>
-                                <Link to={`/course/${lesson.courseId}/lessons`} className="text-decoration-none">
-                                  {lesson.courseName}
-                                </Link>
+                                <div>
+                                  <span className="fw-bold">{lesson.title}</span>
+                                </div>
+                              </td>
+                              <td>
+                                <span className="badge bg-secondary">{lesson.order_number}</span>
                               </td>
                               <td>
                                 <span className={`badge ${getContentTypeBadge(lesson.content_type)}`}>
@@ -193,22 +248,27 @@ export default function Lessons() {
                                   {lesson.content_type}
                                 </span>
                               </td>
+                              <td>{lesson.duration}</td>
                               <td>
-                                <span className="badge bg-primary">{lesson.order || '-'}</span>
+                                <span className={`badge ${getStatusBadge(lesson.status)}`}>
+                                  {lesson.status}
+                                </span>
                               </td>
-                              <td>{lesson.duration || '-'}</td>
+                              <td>
+                                {lesson.created_at ? new Date(lesson.created_at).toLocaleDateString() : '-'}
+                              </td>
                               <td>
                                 <div className="d-flex gap-2">
-                                  <Link 
-                                    to={`/course/${lesson.courseId}/lesson/${lesson.id}/edit`}
+                                  <button 
                                     className="btn btn-sm btn-outline-warning"
+                                    onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lesson/${lesson.id}/edit`)}
                                     title="Edit Lesson"
                                   >
                                     <i className="fas fa-edit"></i>
-                                  </Link>
+                                  </button>
                                   <button 
                                     className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleDeleteLesson(lesson.id, lesson.title, lesson.courseId)}
+                                    onClick={() => handleDeleteLesson(lesson.id, lesson.title)}
                                     title="Delete Lesson"
                                   >
                                     <i className="fas fa-trash"></i>
