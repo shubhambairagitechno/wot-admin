@@ -213,7 +213,6 @@ export default function ChapterLessons() {
                             <th>Lesson Title</th>
                             <th>Order</th>
                             <th>Type</th>
-                            <th>Duration</th>
                             <th>Status</th>
                             <th>Created Date</th>
                             <th>Action</th>
@@ -236,7 +235,6 @@ export default function ChapterLessons() {
                                   {lesson.content_type}
                                 </span>
                               </td>
-                              <td>{lesson.duration}</td>
                               <td>
                                 <span className={`badge ${getStatusBadge(lesson.status)}`}>
                                   {lesson.status}
