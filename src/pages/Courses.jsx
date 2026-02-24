@@ -5,6 +5,7 @@ import { getAllCourses, getCourseById, deleteCourse } from '../api/courses';
 import { useAuth } from '../context/AuthContext';
 import GlobalLoader from '../components/GlobalLoader';
 import CourseDetailModal from '../components/CourseDetailModal';
+import Pagination from '../components/Pagination';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -12,29 +13,40 @@ import Footer from '../components/Footer';
 export default function Courses() {
   const { token } = useAuth();
   const navigate = useNavigate();
+  const [allCourses, setAllCourses] = useState([]);
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchCourses();
   }, []);
 
+  useEffect(() => {
+    // Handle pagination
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setCourses(allCourses.slice(startIndex, endIndex));
+  }, [currentPage, allCourses]);
+
   const fetchCourses = async () => {
     setIsLoading(true);
+    setCurrentPage(1);
     const result = await getAllCourses(token);
     
     if (result.success) {
-      setCourses(result.data || []);
+      setAllCourses(result.data || []);
     } else {
       Swal.fire({
         icon: 'error',
         title: 'Failed to Load Courses',
         text: result.message || 'An error occurred while fetching courses',
       });
-      setCourses([]);
+      setAllCourses([]);
     }
     setIsLoading(false);
   };
@@ -175,94 +187,104 @@ export default function Courses() {
                       <p className="text-muted">No courses found</p>
                     </div>
                   ) : (
-                    <div className="table-responsive">
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Course Title</th>
-                            <th>Level</th>
-                            <th>Duration</th>
-                            <th>Categories</th>
-                            <th>Enrolled</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {courses.map((course) => (
-                            <tr key={course.id}>
-                              <td>
-                                <div className="d-flex align-items-center">
-                                  <img 
-                                    src={course.thumbnail || course.image} 
-                                    alt={course.title}
-                                    style={{
-                                      width: '40px',
-                                      height: '40px',
-                                      borderRadius: '4px',
-                                      marginRight: '10px',
-                                      objectFit: 'cover',
-                                      backgroundColor: '#f0f0f0'
-                                    }}
-                                  />
-                                  <div>
-                                    <span>{course.title}</span>
-                                    <br />
-                                    <small className="text-muted">{course.slug}</small>
-                                  </div>
-                                </div>
-                              </td>
-                              <td>
-                                <span className={`badge ${getLevelBadge(course.level)}`}>
-                                  {course.level}
-                                </span>
-                              </td>
-                              <td>{course.duration_in_minutes} min</td>
-                              <td>
-                                <button 
-                                  className="btn btn-sm btn-link text-primary p-0"
-                                  onClick={() => navigate(`/course/${course.id}/categories`)}
-                                  style={{ textDecoration: 'none', cursor: 'pointer' }}
-                                >
-                                  <span className="badge bg-info">{course.category_count || 0}</span>
-                                </button>
-                              </td>
-                              <td>{course.enrolled_count || 0}</td>
-                              <td>
-                                <span className={`badge ${getStatusBadge(course.status)}`}>
-                                  {course.status}
-                                </span>
-                              </td>
-                              <td>
-                                <div className="d-flex gap-2">
-                                  <button 
-                                    className="btn btn-sm btn-outline-primary"
-                                    onClick={() => handleViewCourse(course.id)}
-                                    title="View Course"
-                                  >
-                                    <i className="fas fa-eye"></i>
-                                  </button>
-                                  <Link 
-                                    to={`/edit-course/${course.id}`}
-                                    className="btn btn-sm btn-outline-warning"
-                                    title="Edit Course"
-                                  >
-                                    <i className="fas fa-edit"></i>
-                                  </Link>
-                                  <button 
-                                    className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleDeleteCourse(course.id, course.title)}
-                                    title="Delete Course"
-                                  >
-                                    <i className="fas fa-trash"></i>
-                                  </button>
-                                </div>
-                              </td>
+                    <>
+                      <div className="table-responsive">
+                        <table className="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Course Title</th>
+                              <th>Level</th>
+                              <th>Duration</th>
+                              <th>Categories</th>
+                              <th>Enrolled</th>
+                              <th>Status</th>
+                              <th>Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {courses.map((course) => (
+                              <tr key={course.id}>
+                                <td>
+                                  <div className="d-flex align-items-center">
+                                    <img 
+                                      src={course.thumbnail || course.image} 
+                                      alt={course.title}
+                                      style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '4px',
+                                        marginRight: '10px',
+                                        objectFit: 'cover',
+                                        backgroundColor: '#f0f0f0'
+                                      }}
+                                    />
+                                    <div>
+                                      <span>{course.title}</span>
+                                      <br />
+                                      <small className="text-muted">{course.slug}</small>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className={`badge ${getLevelBadge(course.level)}`}>
+                                    {course.level}
+                                  </span>
+                                </td>
+                                <td>{course.duration_in_minutes} min</td>
+                                <td>
+                                  <button 
+                                    className="btn btn-sm btn-link text-primary p-0"
+                                    onClick={() => navigate(`/course/${course.id}/categories`)}
+                                    style={{ textDecoration: 'none', cursor: 'pointer' }}
+                                  >
+                                    <span className="badge bg-info">{course.category_count || 0}</span>
+                                  </button>
+                                </td>
+                                <td>{course.enrolled_count || 0}</td>
+                                <td>
+                                  <span className={`badge ${getStatusBadge(course.status)}`}>
+                                    {course.status}
+                                  </span>
+                                </td>
+                                <td>
+                                  <div className="d-flex gap-2">
+                                    <button 
+                                      className="btn btn-sm btn-outline-primary"
+                                      onClick={() => handleViewCourse(course.id)}
+                                      title="View Course"
+                                    >
+                                      <i className="fas fa-eye"></i>
+                                    </button>
+                                    <Link 
+                                      to={`/edit-course/${course.id}`}
+                                      className="btn btn-sm btn-outline-warning"
+                                      title="Edit Course"
+                                    >
+                                      <i className="fas fa-edit"></i>
+                                    </Link>
+                                    <button 
+                                      className="btn btn-sm btn-outline-danger"
+                                      onClick={() => handleDeleteCourse(course.id, course.title)}
+                                      title="Delete Course"
+                                    >
+                                      <i className="fas fa-trash"></i>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <Pagination 
+                        currentPage={currentPage}
+                        totalPages={Math.ceil(allCourses.length / itemsPerPage)}
+                        onPageChange={setCurrentPage}
+                        itemsPerPage={itemsPerPage}
+                        totalItems={allCourses.length}
+                        isLoading={isLoading}
+                      />
+                    </>
                   )}
                 </div>
               </div>

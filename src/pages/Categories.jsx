@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
 import { getCourseById, getCategoriesByCourse } from '../api/courses';
 import GlobalLoader from '../components/GlobalLoader';
+import Pagination from '../components/Pagination';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -12,9 +13,12 @@ export default function Categories() {
   const { token } = useAuth();
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const [allCategories, setAllCategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (courseId) {
@@ -22,8 +26,16 @@ export default function Categories() {
     }
   }, [courseId]);
 
+  useEffect(() => {
+    // Handle pagination
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setCategories(allCategories.slice(startIndex, endIndex));
+  }, [currentPage, allCategories]);
+
   const fetchData = async () => {
     setIsLoading(true);
+    setCurrentPage(1);
     
     // Fetch course details
     const courseResult = await getCourseById(courseId, token);
@@ -34,7 +46,7 @@ export default function Categories() {
     // Fetch categories for the course
     const categoriesResult = await getCategoriesByCourse(courseId, token);
     if (categoriesResult.success) {
-      setCategories(categoriesResult.data || []);
+      setAllCategories(categoriesResult.data || []);
     } else {
       Swal.fire({
         icon: 'error',
@@ -145,72 +157,82 @@ export default function Categories() {
                       <p className="text-muted">No categories found for this course</p>
                     </div>
                   ) : (
-                    <div className="table-responsive">
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Category Title</th>
-                            <th>Order</th>
-                            <th>Chapters</th>
-                            <th>Status</th>
-                            <th>Created Date</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {categories.map((category) => (
-                            <tr key={category.id}>
-                              <td>
-                                <div>
-                                  <span className="fw-bold">{category.title}</span>
-                                  <br />
-                                  <small className="text-muted">{category.description}</small>
-                                </div>
-                              </td>
-                              <td>
-                                <span className="badge bg-secondary">{category.order_number}</span>
-                              </td>
-                              <td>
-                                <button 
-                                  className="btn btn-sm btn-link text-primary p-0"
-                                  onClick={() => navigate(`/course/${courseId}/category/${category.id}/chapters`)}
-                                  style={{ textDecoration: 'none', cursor: 'pointer' }}
-                                  title="View Chapters"
-                                >
-                                  <span className="badge bg-info">{category.chapter_count || 0}</span>
-                                </button>
-                              </td>
-                              <td>
-                                <span className={`badge ${getStatusBadge(category.status)}`}>
-                                  {category.status}
-                                </span>
-                              </td>
-                              <td>
-                                {category.created_at ? new Date(category.created_at).toLocaleDateString() : '-'}
-                              </td>
-                              <td>
-                                <div className="d-flex gap-2">
-                                  <button 
-                                    className="btn btn-sm btn-outline-warning"
-                                    onClick={() => navigate(`/course/${courseId}/category/${category.id}/edit`)}
-                                    title="Edit Category"
-                                  >
-                                    <i className="fas fa-edit"></i>
-                                  </button>
-                                  <button 
-                                    className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleDeleteCategory(category.id, category.title)}
-                                    title="Delete Category"
-                                  >
-                                    <i className="fas fa-trash"></i>
-                                  </button>
-                                </div>
-                              </td>
+                    <>
+                      <div className="table-responsive">
+                        <table className="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Category Title</th>
+                              <th>Order</th>
+                              <th>Chapters</th>
+                              <th>Status</th>
+                              <th>Created Date</th>
+                              <th>Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {categories.map((category) => (
+                              <tr key={category.id}>
+                                <td>
+                                  <div>
+                                    <span className="fw-bold">{category.title}</span>
+                                    <br />
+                                    <small className="text-muted">{category.description}</small>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className="badge bg-secondary">{category.order_number}</span>
+                                </td>
+                                <td>
+                                  <button 
+                                    className="btn btn-sm btn-link text-primary p-0"
+                                    onClick={() => navigate(`/course/${courseId}/category/${category.id}/chapters`)}
+                                    style={{ textDecoration: 'none', cursor: 'pointer' }}
+                                    title="View Chapters"
+                                  >
+                                    <span className="badge bg-info">{category.chapter_count || 0}</span>
+                                  </button>
+                                </td>
+                                <td>
+                                  <span className={`badge ${getStatusBadge(category.status)}`}>
+                                    {category.status}
+                                  </span>
+                                </td>
+                                <td>
+                                  {category.created_at ? new Date(category.created_at).toLocaleDateString() : '-'}
+                                </td>
+                                <td>
+                                  <div className="d-flex gap-2">
+                                    <button 
+                                      className="btn btn-sm btn-outline-warning"
+                                      onClick={() => navigate(`/course/${courseId}/category/${category.id}/edit`)}
+                                      title="Edit Category"
+                                    >
+                                      <i className="fas fa-edit"></i>
+                                    </button>
+                                    <button 
+                                      className="btn btn-sm btn-outline-danger"
+                                      onClick={() => handleDeleteCategory(category.id, category.title)}
+                                      title="Delete Category"
+                                    >
+                                      <i className="fas fa-trash"></i>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <Pagination 
+                        currentPage={currentPage}
+                        totalPages={Math.ceil(allCategories.length / itemsPerPage)}
+                        onPageChange={setCurrentPage}
+                        itemsPerPage={itemsPerPage}
+                        totalItems={allCategories.length}
+                        isLoading={isLoading}
+                      />
+                    </>
                   )}
                 </div>
               </div>

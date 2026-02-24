@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
 import { getCourseById } from '../api/courses';
 import GlobalLoader from '../components/GlobalLoader';
+import Pagination from '../components/Pagination';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -12,10 +13,13 @@ export default function Chapters() {
   const { token } = useAuth();
   const { courseId, categoryId } = useParams();
   const navigate = useNavigate();
+  const [allChapters, setAllChapters] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [category, setCategory] = useState(null);
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (courseId && categoryId) {
@@ -23,8 +27,16 @@ export default function Chapters() {
     }
   }, [courseId, categoryId]);
 
+  useEffect(() => {
+    // Handle pagination
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setChapters(allChapters.slice(startIndex, endIndex));
+  }, [currentPage, allChapters]);
+
   const fetchData = async () => {
     setIsLoading(true);
+    setCurrentPage(1);
     
     // Fetch course details
     const courseResult = await getCourseById(courseId, token);
@@ -88,7 +100,7 @@ export default function Chapters() {
       }
     ];
 
-    setChapters(demoChapters);
+    setAllChapters(demoChapters);
     setIsLoading(false);
   };
 
@@ -195,72 +207,82 @@ export default function Chapters() {
                       <p className="text-muted">No chapters found for this category</p>
                     </div>
                   ) : (
-                    <div className="table-responsive">
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Chapter Title</th>
-                            <th>Order</th>
-                            <th>Lessons</th>
-                            <th>Status</th>
-                            <th>Created Date</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {chapters.map((chapter) => (
-                            <tr key={chapter.id}>
-                              <td>
-                                <div>
-                                  <span className="fw-bold">{chapter.title}</span>
-                                  <br />
-                                  <small className="text-muted">{chapter.description}</small>
-                                </div>
-                              </td>
-                              <td>
-                                <span className="badge bg-secondary">{chapter.order_number}</span>
-                              </td>
-                              <td>
-                                <button 
-                                  className="btn btn-sm btn-link text-primary p-0"
-                                  onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapter.id}/lessons`)}
-                                  style={{ textDecoration: 'none', cursor: 'pointer' }}
-                                  title="View Lessons"
-                                >
-                                  <span className="badge bg-primary">{chapter.lesson_count || 0}</span>
-                                </button>
-                              </td>
-                              <td>
-                                <span className={`badge ${getStatusBadge(chapter.status)}`}>
-                                  {chapter.status}
-                                </span>
-                              </td>
-                              <td>
-                                {chapter.created_at ? new Date(chapter.created_at).toLocaleDateString() : '-'}
-                              </td>
-                              <td>
-                                <div className="d-flex gap-2">
-                                  <button 
-                                    className="btn btn-sm btn-outline-warning"
-                                    onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapter.id}/edit`)}
-                                    title="Edit Chapter"
-                                  >
-                                    <i className="fas fa-edit"></i>
-                                  </button>
-                                  <button 
-                                    className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleDeleteChapter(chapter.id, chapter.title)}
-                                    title="Delete Chapter"
-                                  >
-                                    <i className="fas fa-trash"></i>
-                                  </button>
-                                </div>
-                              </td>
+                    <>
+                      <div className="table-responsive">
+                        <table className="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Chapter Title</th>
+                              <th>Order</th>
+                              <th>Lessons</th>
+                              <th>Status</th>
+                              <th>Created Date</th>
+                              <th>Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {chapters.map((chapter) => (
+                              <tr key={chapter.id}>
+                                <td>
+                                  <div>
+                                    <span className="fw-bold">{chapter.title}</span>
+                                    <br />
+                                    <small className="text-muted">{chapter.description}</small>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className="badge bg-secondary">{chapter.order_number}</span>
+                                </td>
+                                <td>
+                                  <button 
+                                    className="btn btn-sm btn-link text-primary p-0"
+                                    onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapter.id}/lessons`)}
+                                    style={{ textDecoration: 'none', cursor: 'pointer' }}
+                                    title="View Lessons"
+                                  >
+                                    <span className="badge bg-primary">{chapter.lesson_count || 0}</span>
+                                  </button>
+                                </td>
+                                <td>
+                                  <span className={`badge ${getStatusBadge(chapter.status)}`}>
+                                    {chapter.status}
+                                  </span>
+                                </td>
+                                <td>
+                                  {chapter.created_at ? new Date(chapter.created_at).toLocaleDateString() : '-'}
+                                </td>
+                                <td>
+                                  <div className="d-flex gap-2">
+                                    <button 
+                                      className="btn btn-sm btn-outline-warning"
+                                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapter.id}/edit`)}
+                                      title="Edit Chapter"
+                                    >
+                                      <i className="fas fa-edit"></i>
+                                    </button>
+                                    <button 
+                                      className="btn btn-sm btn-outline-danger"
+                                      onClick={() => handleDeleteChapter(chapter.id, chapter.title)}
+                                      title="Delete Chapter"
+                                    >
+                                      <i className="fas fa-trash"></i>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <Pagination 
+                        currentPage={currentPage}
+                        totalPages={Math.ceil(allChapters.length / itemsPerPage)}
+                        onPageChange={setCurrentPage}
+                        itemsPerPage={itemsPerPage}
+                        totalItems={allChapters.length}
+                        isLoading={isLoading}
+                      />
+                    </>
                   )}
                 </div>
               </div>

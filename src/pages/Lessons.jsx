@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { getAllCourses } from '../api/courses';
 import { getLessonsByCourse, deleteLesson } from '../api/lessons';
 import GlobalLoader from '../components/GlobalLoader';
+import Pagination from '../components/Pagination';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -12,16 +13,27 @@ import Footer from '../components/Footer';
 export default function Lessons() {
   const { token } = useAuth();
   const navigate = useNavigate();
+  const [allLessons, setAllLessons] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [coursesMap, setCoursesMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchLessons();
   }, []);
 
+  useEffect(() => {
+    // Handle pagination
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setLessons(allLessons.slice(startIndex, endIndex));
+  }, [currentPage, allLessons]);
+
   const fetchLessons = async () => {
     setIsLoading(true);
+    setCurrentPage(1);
     
     // First fetch all courses to map IDs to titles
     const coursesResult = await getAllCourses(token);
@@ -35,12 +47,12 @@ export default function Lessons() {
     }
 
     // Fetch lessons for all courses
-    const allLessons = [];
+    const allLessonsList = [];
     if (coursesResult.success && coursesResult.data?.length > 0) {
       for (const course of coursesResult.data) {
         const lessonsResult = await getLessonsByCourse(course.id, token);
         if (lessonsResult.success && lessonsResult.data?.length > 0) {
-          allLessons.push(...lessonsResult.data.map(lesson => ({
+          allLessonsList.push(...lessonsResult.data.map(lesson => ({
             ...lesson,
             courseId: course.id,
             courseName: course.title
@@ -49,10 +61,10 @@ export default function Lessons() {
       }
     }
 
-    if (allLessons.length > 0) {
-      setLessons(allLessons);
+    if (allLessonsList.length > 0) {
+      setAllLessons(allLessonsList);
     } else {
-      setLessons([]);
+      setAllLessons([]);
     }
     
     setIsLoading(false);
@@ -166,60 +178,70 @@ export default function Lessons() {
                       <p className="text-muted">No lessons found. Create lessons within courses.</p>
                     </div>
                   ) : (
-                    <div className="table-responsive">
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Lesson Title</th>
-                            <th>Course</th>
-                            <th>Type</th>
-                            <th>Order</th>
-                            <th>Duration</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {lessons.map((lesson) => (
-                            <tr key={lesson.id}>
-                              <td>{lesson.title}</td>
-                              <td>
-                                <Link to={`/course/${lesson.courseId}/lessons`} className="text-decoration-none">
-                                  {lesson.courseName}
-                                </Link>
-                              </td>
-                              <td>
-                                <span className={`badge ${getContentTypeBadge(lesson.content_type)}`}>
-                                  <i className={`${getContentTypeIcon(lesson.content_type)} me-1`}></i>
-                                  {lesson.content_type}
-                                </span>
-                              </td>
-                              <td>
-                                <span className="badge bg-primary">{lesson.order || '-'}</span>
-                              </td>
-                              <td>{lesson.duration || '-'}</td>
-                              <td>
-                                <div className="d-flex gap-2">
-                                  <Link 
-                                    to={`/course/${lesson.courseId}/lesson/${lesson.id}/edit`}
-                                    className="btn btn-sm btn-outline-warning"
-                                    title="Edit Lesson"
-                                  >
-                                    <i className="fas fa-edit"></i>
-                                  </Link>
-                                  <button 
-                                    className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleDeleteLesson(lesson.id, lesson.title, lesson.courseId)}
-                                    title="Delete Lesson"
-                                  >
-                                    <i className="fas fa-trash"></i>
-                                  </button>
-                                </div>
-                              </td>
+                    <>
+                      <div className="table-responsive">
+                        <table className="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Lesson Title</th>
+                              <th>Course</th>
+                              <th>Type</th>
+                              <th>Order</th>
+                              <th>Duration</th>
+                              <th>Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {lessons.map((lesson) => (
+                              <tr key={lesson.id}>
+                                <td>{lesson.title}</td>
+                                <td>
+                                  <Link to={`/course/${lesson.courseId}/lessons`} className="text-decoration-none">
+                                    {lesson.courseName}
+                                  </Link>
+                                </td>
+                                <td>
+                                  <span className={`badge ${getContentTypeBadge(lesson.content_type)}`}>
+                                    <i className={`${getContentTypeIcon(lesson.content_type)} me-1`}></i>
+                                    {lesson.content_type}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className="badge bg-primary">{lesson.order || '-'}</span>
+                                </td>
+                                <td>{lesson.duration || '-'}</td>
+                                <td>
+                                  <div className="d-flex gap-2">
+                                    <Link 
+                                      to={`/course/${lesson.courseId}/lesson/${lesson.id}/edit`}
+                                      className="btn btn-sm btn-outline-warning"
+                                      title="Edit Lesson"
+                                    >
+                                      <i className="fas fa-edit"></i>
+                                    </Link>
+                                    <button 
+                                      className="btn btn-sm btn-outline-danger"
+                                      onClick={() => handleDeleteLesson(lesson.id, lesson.title, lesson.courseId)}
+                                      title="Delete Lesson"
+                                    >
+                                      <i className="fas fa-trash"></i>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <Pagination 
+                        currentPage={currentPage}
+                        totalPages={Math.ceil(allLessons.length / itemsPerPage)}
+                        onPageChange={setCurrentPage}
+                        itemsPerPage={itemsPerPage}
+                        totalItems={allLessons.length}
+                        isLoading={isLoading}
+                      />
+                    </>
                   )}
                 </div>
               </div>
