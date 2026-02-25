@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
 import { getCourseById } from '../api/courses';
-import { getLessonsByChapter } from '../api/lessons';
+import { getLessonsByChapter, deleteLesson } from '../api/lessons';
 import GlobalLoader from '../components/GlobalLoader';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
@@ -127,12 +127,26 @@ export default function ChapterLessons() {
       cancelButtonText: 'Cancel',
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // TODO: Implement delete lesson API call when endpoint is available
-        Swal.fire({
-          icon: 'info',
-          title: 'Delete Feature',
-          text: 'Delete lesson feature will be available soon',
-        });
+        const deleteResult = await deleteLesson(lessonId, token);
+
+        if (deleteResult.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted',
+            text: deleteResult.message || 'Lesson deleted successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          }).then(() => {
+            fetchData();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed to Delete',
+            text: deleteResult.message || 'An error occurred while deleting the lesson',
+          });
+        }
       }
     });
   };
