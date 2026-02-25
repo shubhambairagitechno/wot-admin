@@ -53,55 +53,57 @@ export const addGlossary = async (glossaryData, token) => {
   }
 };
 
-// Get all glossary terms
-export const getAllGlossaries = async (token) => {
+// Get all glossary terms with pagination
+export const getAllGlossaries = async (token, page = 1, limit = 10) => {
   try {
-    // Try multiple endpoint patterns
-    const endpoints = [
-      `${API_BASE_URL}/admin/glossaries`,
-      `${API_BASE_URL}/admin/get-TradingGlossaries`,
-      `${API_BASE_URL}/glossary/admin/glossaries`,
-    ];
+    const url = `${API_BASE_URL}/admin/TradingGlossary?page=${page}&limit=${limit}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': 'application/json',
+      },
+    });
 
-    for (const url of endpoints) {
-      try {
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'accept': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.status === 1 || data.success) {
-            return {
-              success: true,
-              data: data.data || data.glossaries || [],
-              message: data.message || 'Glossaries fetched successfully',
-            };
-          }
-        }
-      } catch (e) {
-        // Continue to next endpoint
-        continue;
-      }
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `HTTP Error: ${response.status}`,
+        data: [],
+        pagination: { page, limit, total: 0, count: 0 },
+      };
     }
 
-    // If no endpoint works, return empty list (will be populated when user adds glossaries)
-    return {
-      success: true,
-      data: [],
-      message: 'No glossaries found. Create one to get started!',
-    };
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return {
+        success: true,
+        data: data.data || [],
+        message: data.message || 'Glossaries fetched successfully',
+        pagination: {
+          page: data.page || page,
+          limit: data.limit || limit,
+          total: data.total || 0,
+          count: data.count || 0,
+        },
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to fetch glossaries',
+        data: [],
+        pagination: { page, limit, total: 0, count: 0 },
+      };
+    }
   } catch (error) {
     console.error('Get Glossaries API Error:', error);
     return {
-      success: true,
+      success: false,
+      message: error.message || 'An error occurred while fetching glossaries',
       data: [],
-      message: 'Ready to add glossaries',
+      pagination: { page: 1, limit: 10, total: 0, count: 0 },
     };
   }
 };

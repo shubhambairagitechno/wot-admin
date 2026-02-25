@@ -13,17 +13,24 @@ export default function Glossaries() {
   const [glossaries, setGlossaries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    count: 0,
+  });
 
   useEffect(() => {
-    fetchGlossaries();
+    fetchGlossaries(1);
   }, []);
 
-  const fetchGlossaries = async () => {
+  const fetchGlossaries = async (pageNumber = 1) => {
     setIsLoading(true);
-    const result = await getAllGlossaries(token);
+    const result = await getAllGlossaries(token, pageNumber, 10);
     
     if (result.success) {
       setGlossaries(result.data || []);
+      setPagination(result.pagination || { page: pageNumber, limit: 10, total: 0, count: 0 });
     } else {
       Swal.fire({
         icon: 'error',
@@ -33,6 +40,10 @@ export default function Glossaries() {
       setGlossaries([]);
     }
     setIsLoading(false);
+  };
+
+  const handlePageChange = (newPage) => {
+    fetchGlossaries(newPage);
   };
 
   const handleDeleteGlossary = (glossaryId, glossaryTerm) => {
@@ -71,11 +82,7 @@ export default function Glossaries() {
     });
   };
 
-  const filteredGlossaries = glossaries.filter(glossary =>
-    glossary.term?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    glossary.short_form?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    glossary.category?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const totalPages = Math.ceil(pagination.total / pagination.limit);
 
   return (
     <>
@@ -114,16 +121,6 @@ export default function Glossaries() {
                       </div>
                     </div>
                     <div className="card-body">
-                      <div className="mb-3">
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="Search by term, short form, or category..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                      </div>
-
                       {isLoading ? (
                         <div className="text-center py-4">
                           <div className="spinner-border" role="status">
@@ -135,61 +132,116 @@ export default function Glossaries() {
                           <i className="fas fa-info-circle me-2"></i>
                           No glossaries found. Click "Add New Glossary" to create one.
                         </div>
-                      ) : filteredGlossaries.length === 0 ? (
-                        <div className="alert alert-warning text-center py-4">
-                          <i className="fas fa-search me-2"></i>
-                          No matching glossaries found.
-                        </div>
                       ) : (
-                        <div className="table-responsive">
-                          <table className="table table-striped table-hover">
-                            <thead className="table-light">
-                              <tr>
-                                <th width="5%">#</th>
-                                <th width="20%">Term</th>
-                                <th width="15%">Short Form</th>
-                                <th width="20%">Category</th>
-                                <th width="30%">Description</th>
-                                <th width="10%" className="text-center">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filteredGlossaries.map((glossary, index) => (
-                                <tr key={glossary.id || index}>
-                                  <td>{index + 1}</td>
-                                  <td>
-                                    <strong>{glossary.term}</strong>
-                                  </td>
-                                  <td>
-                                    <span className="badge badge-info">{glossary.short_form}</span>
-                                  </td>
-                                  <td>
-                                    <span className="badge badge-secondary">{glossary.category}</span>
-                                  </td>
-                                  <td>
-                                    <small>{glossary.description?.substring(0, 50)}...</small>
-                                  </td>
-                                  <td className="text-center">
-                                    <div className="btn-group" role="group">
-                                      <button
-                                        onClick={() => handleDeleteGlossary(glossary.id, glossary.term)}
-                                        className="btn btn-sm btn-danger"
-                                        title="Delete"
-                                      >
-                                        <i className="fa fa-trash"></i>
-                                      </button>
-                                    </div>
-                                  </td>
+                        <>
+                          <div className="table-responsive">
+                            <table className="table table-striped table-hover">
+                              <thead className="table-light">
+                                <tr>
+                                  <th width="5%">#</th>
+                                  <th width="20%">Term</th>
+                                  <th width="15%">Short Form</th>
+                                  <th width="20%">Category</th>
+                                  <th width="30%">Description</th>
+                                  <th width="10%" className="text-center">Actions</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+                              </thead>
+                              <tbody>
+                                {glossaries.map((glossary, index) => (
+                                  <tr key={glossary.id}>
+                                    <td>{(pagination.page - 1) * pagination.limit + index + 1}</td>
+                                    <td>
+                                      <strong>{glossary.term}</strong>
+                                    </td>
+                                    <td>
+                                      <span className="badge badge-info">{glossary.short_form}</span>
+                                    </td>
+                                    <td>
+                                      <span className="badge badge-secondary">{glossary.category}</span>
+                                    </td>
+                                    <td>
+                                      <small title={glossary.description}>
+                                        {glossary.description?.substring(0, 50)}
+                                        {glossary.description?.length > 50 ? '...' : ''}
+                                      </small>
+                                    </td>
+                                    <td className="text-center">
+                                      <div className="btn-group" role="group">
+                                        <button
+                                          onClick={() => handleDeleteGlossary(glossary.id, glossary.term)}
+                                          className="btn btn-sm btn-danger"
+                                          title="Delete"
+                                        >
+                                          <i className="fa fa-trash"></i>
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {totalPages > 1 && (
+                            <nav aria-label="Page navigation">
+                              <ul className="pagination justify-content-center">
+                                <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
+                                  <button
+                                    className="page-link"
+                                    onClick={() => handlePageChange(1)}
+                                    disabled={pagination.page === 1}
+                                  >
+                                    First
+                                  </button>
+                                </li>
+                                <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
+                                  <button
+                                    className="page-link"
+                                    onClick={() => handlePageChange(pagination.page - 1)}
+                                    disabled={pagination.page === 1}
+                                  >
+                                    Previous
+                                  </button>
+                                </li>
+
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                  <li key={page} className={`page-item ${pagination.page === page ? 'active' : ''}`}>
+                                    <button
+                                      className="page-link"
+                                      onClick={() => handlePageChange(page)}
+                                    >
+                                      {page}
+                                    </button>
+                                  </li>
+                                ))}
+
+                                <li className={`page-item ${pagination.page === totalPages ? 'disabled' : ''}`}>
+                                  <button
+                                    className="page-link"
+                                    onClick={() => handlePageChange(pagination.page + 1)}
+                                    disabled={pagination.page === totalPages}
+                                  >
+                                    Next
+                                  </button>
+                                </li>
+                                <li className={`page-item ${pagination.page === totalPages ? 'disabled' : ''}`}>
+                                  <button
+                                    className="page-link"
+                                    onClick={() => handlePageChange(totalPages)}
+                                    disabled={pagination.page === totalPages}
+                                  >
+                                    Last
+                                  </button>
+                                </li>
+                              </ul>
+                            </nav>
+                          )}
+                        </>
                       )}
                     </div>
                     <div className="card-footer">
                       <small className="text-muted">
-                        Total: {glossaries.length} glossaries | Showing: {filteredGlossaries.length}
+                        Page {pagination.page} of {totalPages} | Showing {glossaries.length} of {pagination.total} glossaries
                       </small>
                     </div>
                   </div>
