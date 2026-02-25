@@ -229,16 +229,13 @@ export default function ChapterLessons() {
                             <th>Type</th>
                             <th>Status</th>
                             <th>Created Date</th>
+                            <th>Content</th>
                             <th>Action</th>
                           </tr>
                         </thead>
                         <tbody>
                           {lessons.map((lesson) => (
-                            <tr 
-                              key={lesson.id}
-                              onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lesson/${lesson.id}/contents`)}
-                              style={{ cursor: 'pointer' }}
-                            >
+                            <tr key={lesson.id}>
                               <td>
                                 <div>
                                   <span className="fw-bold">{lesson.title}</span>
@@ -260,6 +257,15 @@ export default function ChapterLessons() {
                               </td>
                               <td>
                                 {lesson.created_at ? new Date(lesson.created_at).toLocaleDateString() : '-'}
+                              </td>
+                              <td>
+                                <button 
+                                  className="btn btn-sm btn-info"
+                                  onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lesson/${lesson.id}/contents`)}
+                                  title="View Content"
+                                >
+                                  <i className="fas fa-eye me-1"></i>View
+                                </button>
                               </td>
                               <td>
                                 <div className="d-flex gap-2">
