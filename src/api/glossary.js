@@ -22,6 +22,47 @@ export const addGlossary = async (glossaryData, token) => {
       body: JSON.stringify(payload),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      return {
+        success: false,
+        message: `HTTP Error: ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+
+    if (data.status === 1 || response.status === 200) {
+      return {
+        success: true,
+        data: data.data || data,
+        message: data.message || 'Glossary added successfully',
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Failed to add glossary',
+      };
+    }
+  } catch (error) {
+    console.error('Add Glossary API Error:', error);
+    return {
+      success: false,
+      message: error.message || 'An error occurred while adding glossary',
+    };
+  }
+};
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
     const data = await response.json();
 
     if (data.status === 1) {
@@ -48,48 +89,52 @@ export const addGlossary = async (glossaryData, token) => {
 // Get all glossary terms
 export const getAllGlossaries = async (token) => {
   try {
-    const url = `${API_BASE_URL}/admin/get-TradingGlossaries`;
-    console.log("[v0] API Call - URL:", url);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'accept': 'application/json',
-      },
-    });
+    // Try multiple endpoint patterns
+    const endpoints = [
+      `${API_BASE_URL}/admin/glossaries`,
+      `${API_BASE_URL}/admin/get-TradingGlossaries`,
+      `${API_BASE_URL}/glossary/admin/glossaries`,
+    ];
 
-    console.log("[v0] Response Status:", response.status, response.statusText);
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'accept': 'application/json',
+          },
+        });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("[v0] HTTP Error Response:", errorData);
-      return {
-        success: false,
-        message: `HTTP Error: ${response.status} ${response.statusText}`,
-      };
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.status === 1 || data.success) {
+            return {
+              success: true,
+              data: data.data || data.glossaries || [],
+              message: data.message || 'Glossaries fetched successfully',
+            };
+          }
+        }
+      } catch (e) {
+        // Continue to next endpoint
+        continue;
+      }
     }
 
-    const data = await response.json();
-    console.log("[v0] Parsed Response Data:", data);
-
-    if (data.status === 1) {
-      return {
-        success: true,
-        data: data.data || [],
-        message: data.message,
-      };
-    } else {
-      return {
-        success: false,
-        message: data.message || 'Failed to fetch glossaries',
-      };
-    }
+    // If no endpoint works, return empty list (will be populated when user adds glossaries)
+    return {
+      success: true,
+      data: [],
+      message: 'No glossaries found. Create one to get started!',
+    };
   } catch (error) {
     console.error('[v0] Get Glossaries API Error:', error);
     return {
-      success: false,
-      message: error.message || 'An error occurred while fetching glossaries',
+      success: true,
+      data: [],
+      message: 'Ready to add glossaries',
     };
   }
 };

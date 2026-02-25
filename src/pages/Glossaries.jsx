@@ -19,39 +19,23 @@ export default function Glossaries() {
   }, []);
 
   const fetchGlossaries = async () => {
-    try {
-      setIsLoading(true);
-      console.log("[v0] Fetching glossaries with token:", !!token);
-      const result = await getAllGlossaries(token);
-      
-      console.log("[v0] API Response:", result);
-      
-      if (result.success) {
-        console.log("[v0] Success - Setting glossaries:", result.data);
-        setGlossaries(result.data || []);
-      } else {
-        console.error("[v0] API Error:", result.message);
-        Swal.fire({
-          icon: 'error',
-          title: 'Failed to Load Glossaries',
-          text: result.message || 'An error occurred while fetching glossaries',
-        });
-        setGlossaries([]);
-      }
-    } catch (error) {
-      console.error("[v0] Exception:", error);
+    setIsLoading(true);
+    const result = await getAllGlossaries(token);
+    
+    if (result.success) {
+      setGlossaries(result.data || []);
+    } else {
       Swal.fire({
         icon: 'error',
-        title: 'Error',
-        text: 'An unexpected error occurred',
+        title: 'Failed to Load Glossaries',
+        text: result.message || 'An error occurred while fetching glossaries',
       });
       setGlossaries([]);
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
-  const handleDelete = (glossaryId, glossaryTerm) => {
+  const handleDeleteGlossary = (glossaryId, glossaryTerm) => {
     Swal.fire({
       title: 'Delete Glossary',
       text: `Are you sure you want to delete "${glossaryTerm}"? This action cannot be undone.`,
@@ -69,7 +53,7 @@ export default function Glossaries() {
           Swal.fire({
             icon: 'success',
             title: 'Deleted',
-            text: deleteResult.message || 'Glossary term deleted successfully',
+            text: deleteResult.message || 'Glossary deleted successfully',
             timer: 1500,
             timerProgressBar: true,
             showConfirmButton: false,
@@ -80,7 +64,7 @@ export default function Glossaries() {
           Swal.fire({
             icon: 'error',
             title: 'Failed to Delete',
-            text: deleteResult.message || 'An error occurred while deleting the glossary term',
+            text: deleteResult.message || 'An error occurred while deleting the glossary',
           });
         }
       }
@@ -94,108 +78,128 @@ export default function Glossaries() {
   );
 
   return (
-    <div className="main-wrapper">
+    <>
+      <GlobalLoader />
       <Header />
-      <Sidebar />
-      <div className="page-wrapper">
-        <div className="content container-fluid">
-          <div className="page-header">
-            <div className="content-page-header">
-              <div>
-                <h5>Glossaries</h5>
-              </div>
-              <div className="list-btn">
-                <ul className="filter-list">
-                  <li>
-                    <Link className="btn btn-primary" to="/add-glossary">
-                      <i className="fa fa-plus-circle me-2"></i>Add New Glossary
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="col-sm-12">
-              <div className="card card-table comman-shadow">
-                <div className="card-body">
-                  <div className="table-responsive">
-                    <div className="search-box mb-3">
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="Search glossaries..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-
-                    {isLoading ? (
-                      <GlobalLoader />
-                    ) : filteredGlossaries.length === 0 ? (
-                      <div className="text-center py-5">
-                        <p className="text-muted">No glossary terms found</p>
-                      </div>
-                    ) : (
-                      <table className="table table-hover comman-table datatable mb-0">
-                        <thead>
-                          <tr>
-                            <th>Term</th>
-                            <th>Short Form</th>
-                            <th>Category</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredGlossaries.map((glossary, index) => (
-                            <tr key={glossary.id || index}>
-                              <td>
-                                <strong>{glossary.term}</strong>
-                              </td>
-                              <td>
-                                <span className="badge bg-light text-dark">{glossary.short_form}</span>
-                              </td>
-                              <td>
-                                <span className="badge bg-info text-white">{glossary.category}</span>
-                              </td>
-                              <td>
-                                <div className="text-truncate" style={{ maxWidth: '300px' }} title={glossary.description}>
-                                  {glossary.description}
-                                </div>
-                              </td>
-                              <td>
-                                <div className="btn-group" role="group">
-                                  <Link 
-                                    to={`/edit-glossary/${glossary.id}`}
-                                    className="btn btn-sm btn-info"
-                                    title="Edit"
-                                  >
-                                    <i className="fa fa-edit"></i>
-                                  </Link>
-                                  <button 
-                                    onClick={() => handleDelete(glossary.id, glossary.term)}
-                                    className="btn btn-sm btn-danger"
-                                    title="Delete"
-                                  >
-                                    <i className="fa fa-trash"></i>
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
+      <div className="wrapper">
+        <Sidebar />
+        <div className="content-wrapper">
+          <div className="content-header">
+            <div className="container-fluid">
+              <div className="row mb-2">
+                <div className="col-sm-6">
+                  <h1 className="m-0">Glossaries</h1>
+                </div>
+                <div className="col-sm-6">
+                  <ol className="breadcrumb float-sm-right">
+                    <li className="breadcrumb-item"><Link to="/dashboard">Home</Link></li>
+                    <li className="breadcrumb-item active">Glossaries</li>
+                  </ol>
                 </div>
               </div>
             </div>
           </div>
+
+          <section className="content">
+            <div className="container-fluid">
+              <div className="row">
+                <div className="col-md-12">
+                  <div className="card">
+                    <div className="card-header">
+                      <h3 className="card-title">Glossary Terms</h3>
+                      <div className="card-tools">
+                        <Link to="/add-glossary" className="btn btn-primary btn-sm">
+                          <i className="fas fa-plus"></i> Add New Glossary
+                        </Link>
+                      </div>
+                    </div>
+                    <div className="card-body">
+                      <div className="mb-3">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Search by term, short form, or category..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+
+                      {isLoading ? (
+                        <div className="text-center py-4">
+                          <div className="spinner-border" role="status">
+                            <span className="sr-only">Loading...</span>
+                          </div>
+                        </div>
+                      ) : glossaries.length === 0 ? (
+                        <div className="alert alert-info text-center py-4">
+                          <i className="fas fa-info-circle me-2"></i>
+                          No glossaries found. Click "Add New Glossary" to create one.
+                        </div>
+                      ) : filteredGlossaries.length === 0 ? (
+                        <div className="alert alert-warning text-center py-4">
+                          <i className="fas fa-search me-2"></i>
+                          No matching glossaries found.
+                        </div>
+                      ) : (
+                        <div className="table-responsive">
+                          <table className="table table-striped table-hover">
+                            <thead className="table-light">
+                              <tr>
+                                <th width="5%">#</th>
+                                <th width="20%">Term</th>
+                                <th width="15%">Short Form</th>
+                                <th width="20%">Category</th>
+                                <th width="30%">Description</th>
+                                <th width="10%" className="text-center">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filteredGlossaries.map((glossary, index) => (
+                                <tr key={glossary.id || index}>
+                                  <td>{index + 1}</td>
+                                  <td>
+                                    <strong>{glossary.term}</strong>
+                                  </td>
+                                  <td>
+                                    <span className="badge badge-info">{glossary.short_form}</span>
+                                  </td>
+                                  <td>
+                                    <span className="badge badge-secondary">{glossary.category}</span>
+                                  </td>
+                                  <td>
+                                    <small>{glossary.description?.substring(0, 50)}...</small>
+                                  </td>
+                                  <td className="text-center">
+                                    <div className="btn-group" role="group">
+                                      <button
+                                        onClick={() => handleDeleteGlossary(glossary.id, glossary.term)}
+                                        className="btn btn-sm btn-danger"
+                                        title="Delete"
+                                      >
+                                        <i className="fa fa-trash"></i>
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                    <div className="card-footer">
+                      <small className="text-muted">
+                        Total: {glossaries.length} glossaries | Showing: {filteredGlossaries.length}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
       <Footer />
-    </div>
+    </>
   );
 }
