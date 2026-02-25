@@ -14,6 +14,7 @@ import AddCategory from './pages/AddCategory'
 import Chapters from './pages/Chapters'
 import AddChapter from './pages/AddChapter'
 import ChapterLessons from './pages/ChapterLessons'
+import LessonContents from './pages/LessonContents'
 import Quizes from './pages/Quizes'
 import UserList from './pages/UserList'
 import AddLesson from './pages/AddLesson'
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/course/:courseId/category/:categoryId/add-chapter" element={<ProtectedRoute><AddChapter /></ProtectedRoute>} />
         <Route path="/course/:courseId/category/:categoryId/chapter/:chapterId/lessons" element={<ProtectedRoute><ChapterLessons /></ProtectedRoute>} />
         <Route path="/course/:courseId/category/:categoryId/chapter/:chapterId/add-lesson" element={<ProtectedRoute><AddLesson /></ProtectedRoute>} />
+        <Route path="/course/:courseId/category/:categoryId/chapter/:chapterId/lesson/:lessonId/contents" element={<ProtectedRoute><LessonContents /></ProtectedRoute>} />
         <Route path="/lessons" element={<ProtectedRoute><Lessons /></ProtectedRoute>} />
         <Route path="/quizes" element={<ProtectedRoute><Quizes /></ProtectedRoute>} />
         <Route path="/user-list" element={<ProtectedRoute><UserList /></ProtectedRoute>} />

@@ -2,105 +2,126 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
-import { getCourseById } from '../api/courses';
-import { getLessonsByChapter, deleteLesson } from '../api/lessons';
 import GlobalLoader from '../components/GlobalLoader';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 
-export default function ChapterLessons() {
+export default function LessonContents() {
   const { token } = useAuth();
-  const { courseId, categoryId, chapterId } = useParams();
+  const { courseId, categoryId, chapterId, lessonId } = useParams();
   const navigate = useNavigate();
-  const [lessons, setLessons] = useState([]);
-  const [chapter, setChapter] = useState(null);
-  const [course, setCourse] = useState(null);
+  const [contents, setContents] = useState([]);
+  const [lesson, setLesson] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (courseId && categoryId && chapterId) {
+    if (courseId && categoryId && chapterId && lessonId) {
       fetchData();
     }
-  }, [courseId, categoryId, chapterId]);
+  }, [courseId, categoryId, chapterId, lessonId]);
 
   const fetchData = async () => {
     setIsLoading(true);
     
     try {
-      // Fetch course details
-      const courseResult = await getCourseById(courseId, token);
-      if (courseResult.success) {
-        setCourse(courseResult.data);
-      }
-      
-      // Fetch lessons for this chapter from API
-      const lessonsResult = await getLessonsByChapter(chapterId, token);
-      
-      if (lessonsResult.success) {
-        // Extract chapter info from lessons if available
-        if (lessonsResult.chapterId) {
-          setChapter({
-            id: chapterId,
-            title: `Chapter ${chapterId}`,
-            order_number: lessonsResult.chapterId
-          });
-        }
-        
-        // Process lessons data from API
-        const processedLessons = lessonsResult.lessons.map(lesson => ({
-          id: lesson.id,
-          title: lesson.title,
-          content_type: lesson.content_type || 'Text',
-          order_number: lesson.order_number,
-          duration: lesson.duration || '-',
-          status: lesson.status || 'active',
-          created_at: lesson.created_at,
-          description: lesson.description
-        }));
-        
-        setLessons(processedLessons);
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: lessonsResult.message || 'Failed to fetch lessons',
-        });
-        setLessons([]);
-      }
+      // Set lesson info
+      setLesson({
+        id: lessonId,
+        title: `Lesson ${lessonId}`,
+        description: 'Sample lesson description'
+      });
+
+      // Demo data for content list
+      const demoContents = [
+        {
+          id: 1,
+          title: 'Introduction to Topic',
+          type: 'video',
+          duration: '5:30',
+          status: 'active',
+          created_at: '2024-02-20',
+          order_number: 1,
+          description: 'Getting started with the basics'
+        },
+        {
+          id: 2,
+          title: 'Core Concepts',
+          type: 'text',
+          duration: '-',
+          status: 'active',
+          created_at: '2024-02-20',
+          order_number: 2,
+          description: 'Understanding fundamental principles'
+        },
+        {
+          id: 3,
+          title: 'Practice Exercise',
+          type: 'pdf',
+          duration: '-',
+          status: 'active',
+          created_at: '2024-02-21',
+          order_number: 3,
+          description: 'Hands-on practice materials'
+        },
+        {
+          id: 4,
+          title: 'Advanced Techniques',
+          type: 'video',
+          duration: '8:15',
+          status: 'draft',
+          created_at: '2024-02-21',
+          order_number: 4,
+          description: 'Moving beyond the basics'
+        },
+        {
+          id: 5,
+          title: 'Audio Lecture',
+          type: 'audio',
+          duration: '12:45',
+          status: 'active',
+          created_at: '2024-02-22',
+          order_number: 5,
+          description: 'Detailed lecture recording'
+        },
+      ];
+
+      setContents(demoContents);
     } catch (error) {
-      console.error('[v0] Error fetching lessons:', error);
+      console.error('[v0] Error fetching contents:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'An error occurred while fetching lessons',
+        text: 'An error occurred while fetching contents',
       });
-      setLessons([]);
+      setContents([]);
     }
     
     setIsLoading(false);
   };
 
-  const getContentTypeBadge = (contentType) => {
+  const getContentTypeBadge = (type) => {
     const badgeMap = {
       'text': 'bg-info',
       'video': 'bg-danger',
       'audio': 'bg-primary',
       'doc': 'bg-warning',
       'pdf': 'bg-secondary',
+      'image': 'bg-success',
     };
-    return badgeMap[contentType?.toLowerCase()] || 'bg-dark';
+    return badgeMap[type?.toLowerCase()] || 'bg-dark';
   };
 
-  const getContentTypeIcon = (contentType) => {
+  const getContentTypeIcon = (type) => {
     const iconMap = {
       'text': 'fas fa-file-alt',
       'video': 'fas fa-video',
       'audio': 'fas fa-headphones',
       'doc': 'fas fa-file-word',
       'pdf': 'fas fa-file-pdf',
+      'image': 'fas fa-image',
     };
-    return iconMap[contentType?.toLowerCase()] || 'fas fa-file';
+    return iconMap[type?.toLowerCase()] || 'fas fa-file';
   };
 
   const getStatusBadge = (status) => {
@@ -115,10 +136,10 @@ export default function ChapterLessons() {
     return statusMap[status?.toLowerCase()] || 'bg-secondary';
   };
 
-  const handleDeleteLesson = (lessonId, lessonTitle) => {
+  const handleDeleteContent = (contentId, contentTitle) => {
     Swal.fire({
-      title: 'Delete Lesson',
-      text: `Are you sure you want to delete "${lessonTitle}"? This action cannot be undone.`,
+      title: 'Delete Content',
+      text: `Are you sure you want to delete "${contentTitle}"? This action cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -127,26 +148,17 @@ export default function ChapterLessons() {
       cancelButtonText: 'Cancel',
     }).then(async (result) => {
       if (result.isConfirmed) {
-        const deleteResult = await deleteLesson(lessonId, token);
-
-        if (deleteResult.success) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Deleted',
-            text: deleteResult.message || 'Lesson deleted successfully',
-            timer: 1500,
-            timerProgressBar: true,
-            showConfirmButton: false,
-          }).then(() => {
-            fetchData();
-          });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Failed to Delete',
-            text: deleteResult.message || 'An error occurred while deleting the lesson',
-          });
-        }
+        // Demo delete - in real implementation, call API
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted',
+          text: 'Content deleted successfully',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        }).then(() => {
+          setContents(contents.filter(c => c.id !== contentId));
+        });
       }
     });
   };
@@ -160,9 +172,9 @@ export default function ChapterLessons() {
           <div className="page-header">
             <div className="content-page-header">
               <div>
-                <h5>Lessons{chapter && ` - ${chapter.title}`}</h5>
-                {chapter?.description && (
-                  <p className="text-muted small">{chapter.description}</p>
+                <h5>Contents{lesson && ` - ${lesson.title}`}</h5>
+                {lesson?.description && (
+                  <p className="text-muted small">{lesson.description}</p>
                 )}
               </div>
               <div className="list-btn">
@@ -170,9 +182,9 @@ export default function ChapterLessons() {
                   <li>
                     <button 
                       className="btn btn-outline-secondary"
-                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapters`)}
+                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lessons`)}
                     >
-                      <i className="fas fa-arrow-left me-2"></i>Back to Chapters
+                      <i className="fas fa-arrow-left me-2"></i>Back to Lessons
                     </button>
                   </li>
                   <li>
@@ -199,9 +211,9 @@ export default function ChapterLessons() {
                   <li>
                     <button 
                       className="btn btn-primary"
-                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/add-lesson`)}
+                      onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lesson/${lessonId}/add-content`)}
                     >
-                      <i className="fa fa-plus-circle me-2"></i>Add Lesson
+                      <i className="fa fa-plus-circle me-2"></i>Add Content
                     </button>
                   </li>
                 </ul>
@@ -215,65 +227,68 @@ export default function ChapterLessons() {
                 <div className="card-body">
                   {isLoading ? (
                     <GlobalLoader visible={true} size="medium" />
-                  ) : lessons.length === 0 ? (
+                  ) : contents.length === 0 ? (
                     <div className="text-center py-5">
-                      <p className="text-muted">No lessons found for this chapter</p>
+                      <p className="text-muted">No contents found for this lesson</p>
                     </div>
                   ) : (
                     <div className="table-responsive">
                       <table className="table table-striped">
                         <thead>
                           <tr>
-                            <th>Lesson Title</th>
+                            <th>Content Title</th>
                             <th>Order</th>
                             <th>Type</th>
+                            <th>Duration</th>
                             <th>Status</th>
                             <th>Created Date</th>
                             <th>Action</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {lessons.map((lesson) => (
-                            <tr 
-                              key={lesson.id}
-                              onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lesson/${lesson.id}/contents`)}
-                              style={{ cursor: 'pointer' }}
-                            >
+                          {contents.map((content) => (
+                            <tr key={content.id}>
                               <td>
                                 <div>
-                                  <span className="fw-bold">{lesson.title}</span>
+                                  <span className="fw-bold">{content.title}</span>
+                                  {content.description && (
+                                    <p className="text-muted small mb-0">{content.description}</p>
+                                  )}
                                 </div>
                               </td>
                               <td>
-                                <span className="badge bg-secondary">{lesson.order_number}</span>
+                                <span className="badge bg-secondary">{content.order_number}</span>
                               </td>
                               <td>
-                                <span className={`badge ${getContentTypeBadge(lesson.content_type)}`}>
-                                  <i className={`${getContentTypeIcon(lesson.content_type)} me-1`}></i>
-                                  {lesson.content_type}
+                                <span className={`badge ${getContentTypeBadge(content.type)}`}>
+                                  <i className={`${getContentTypeIcon(content.type)} me-1`}></i>
+                                  {content.type}
                                 </span>
                               </td>
                               <td>
-                                <span className={`badge ${getStatusBadge(lesson.status)}`}>
-                                  {lesson.status}
+                                <span>{content.duration}</span>
+                              </td>
+                              <td>
+                                <span className={`badge ${getStatusBadge(content.status)}`}>
+                                  {content.status}
                                 </span>
                               </td>
                               <td>
-                                {lesson.created_at ? new Date(lesson.created_at).toLocaleDateString() : '-'}
+                                {content.created_at ? new Date(content.created_at).toLocaleDateString() : '-'}
                               </td>
                               <td>
                                 <div className="d-flex gap-2">
                                   <button 
                                     className="btn btn-sm btn-outline-warning"
-                                    onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lesson/${lesson.id}/edit`)}
-                                    title="Edit Lesson"
+                                    onClick={() => navigate(`/course/${courseId}/category/${categoryId}/chapter/${chapterId}/lesson/${lessonId}/edit-content/${content.id}`)}
+                                    title="Edit Content"
                                   >
                                     <i className="fas fa-edit"></i>
                                   </button>
                                   <button 
                                     className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleDeleteLesson(lesson.id, lesson.title)}
-                                    title="Delete Lesson"
+                                    onClick={() => handleDeleteContent(content.id, content.title)}
+                                    title="Delete Content"
                                   >
                                     <i className="fas fa-trash"></i>
                                   </button>
