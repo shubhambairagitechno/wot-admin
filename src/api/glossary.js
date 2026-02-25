@@ -49,6 +49,7 @@ export const addGlossary = async (glossaryData, token) => {
 export const getAllGlossaries = async (token) => {
   try {
     const url = `${API_BASE_URL}/admin/get-TradingGlossaries`;
+    console.log("[v0] API Call - URL:", url);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -58,7 +59,19 @@ export const getAllGlossaries = async (token) => {
       },
     });
 
+    console.log("[v0] Response Status:", response.status, response.statusText);
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("[v0] HTTP Error Response:", errorData);
+      return {
+        success: false,
+        message: `HTTP Error: ${response.status} ${response.statusText}`,
+      };
+    }
+
     const data = await response.json();
+    console.log("[v0] Parsed Response Data:", data);
 
     if (data.status === 1) {
       return {
@@ -73,7 +86,7 @@ export const getAllGlossaries = async (token) => {
       };
     }
   } catch (error) {
-    console.error('Get Glossaries API Error:', error);
+    console.error('[v0] Get Glossaries API Error:', error);
     return {
       success: false,
       message: error.message || 'An error occurred while fetching glossaries',

@@ -19,20 +19,36 @@ export default function Glossaries() {
   }, []);
 
   const fetchGlossaries = async () => {
-    setIsLoading(true);
-    const result = await getAllGlossaries(token);
-    
-    if (result.success) {
-      setGlossaries(result.data || []);
-    } else {
+    try {
+      setIsLoading(true);
+      console.log("[v0] Fetching glossaries with token:", !!token);
+      const result = await getAllGlossaries(token);
+      
+      console.log("[v0] API Response:", result);
+      
+      if (result.success) {
+        console.log("[v0] Success - Setting glossaries:", result.data);
+        setGlossaries(result.data || []);
+      } else {
+        console.error("[v0] API Error:", result.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to Load Glossaries',
+          text: result.message || 'An error occurred while fetching glossaries',
+        });
+        setGlossaries([]);
+      }
+    } catch (error) {
+      console.error("[v0] Exception:", error);
       Swal.fire({
         icon: 'error',
-        title: 'Failed to Load Glossaries',
-        text: result.message || 'An error occurred while fetching glossaries',
+        title: 'Error',
+        text: 'An unexpected error occurred',
       });
       setGlossaries([]);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleDelete = (glossaryId, glossaryTerm) => {
