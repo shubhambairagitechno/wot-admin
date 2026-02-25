@@ -1,5 +1,3 @@
-import { apiConfig } from './config';
-
 const API_BASE_URL = 'https://api.wayoftrading.com/aitredding';
 
 // Add new glossary term

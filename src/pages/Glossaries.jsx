@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getAllGlossaries, deleteGlossary } from '../api/glossary';
 import { useAuth } from '../context/AuthContext';
+import GlobalLoader from '../components/GlobalLoader';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
-import GlobalLoader from '../components/GlobalLoader';
 
 export default function Glossaries() {
   const { token } = useAuth();
@@ -27,46 +27,48 @@ export default function Glossaries() {
     } else {
       Swal.fire({
         icon: 'error',
-        title: 'Error',
-        text: result.message || 'Failed to fetch glossaries',
+        title: 'Failed to Load Glossaries',
+        text: result.message || 'An error occurred while fetching glossaries',
       });
+      setGlossaries([]);
     }
-    
     setIsLoading(false);
   };
 
-  const handleDelete = async (glossaryId) => {
-    const confirm = await Swal.fire({
-      title: 'Confirm Delete',
-      text: 'Are you sure you want to delete this glossary term?',
+  const handleDelete = (glossaryId, glossaryTerm) => {
+    Swal.fire({
+      title: 'Delete Glossary',
+      text: `Are you sure you want to delete "${glossaryTerm}"? This action cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-    });
+      confirmButtonText: 'Yes, delete it',
+      cancelButtonText: 'Cancel',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const deleteResult = await deleteGlossary(glossaryId, token);
 
-    if (confirm.isConfirmed) {
-      const result = await deleteGlossary(glossaryId, token);
-      
-      if (result.success) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted',
-          text: 'Glossary term deleted successfully!',
-          timer: 1500,
-          timerProgressBar: true,
-          showConfirmButton: false,
-        });
-        fetchGlossaries();
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Failed to Delete',
-          text: result.message || 'An error occurred while deleting the glossary term',
-        });
+        if (deleteResult.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted',
+            text: deleteResult.message || 'Glossary term deleted successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          }).then(() => {
+            fetchGlossaries();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed to Delete',
+            text: deleteResult.message || 'An error occurred while deleting the glossary term',
+          });
+        }
       }
-    }
+    });
   };
 
   const filteredGlossaries = glossaries.filter(glossary =>
@@ -157,7 +159,7 @@ export default function Glossaries() {
                                     <i className="fa fa-edit"></i>
                                   </Link>
                                   <button 
-                                    onClick={() => handleDelete(glossary.id)}
+                                    onClick={() => handleDelete(glossary.id, glossary.term)}
                                     className="btn btn-sm btn-danger"
                                     title="Delete"
                                   >
