@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getGlossary } from '../api/glossary';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
+import Footer from '../components/Footer';
 import Swal from 'sweetalert2';
 
 export default function Glossary() {
@@ -62,6 +65,8 @@ export default function Glossary() {
 
   return (
     <div className="page-wrapper">
+      <Header />
+      <Sidebar />
       <div className="content">
         <div className="page-header d-print-none">
           <div className="row align-items-center">
@@ -204,6 +209,7 @@ export default function Glossary() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
