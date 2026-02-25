@@ -71,6 +71,13 @@ export default function Sidebar() {
               </Link>
             </li>
 
+            <li>
+              <Link to="/glossary" className={isActive("/glossary")}>
+                <i className="fas fa-book-open me-2"></i>
+                <span>Glossary</span>
+              </Link>
+            </li>
+
             <li className="border-top mt-3 pt-3">
               <button 
                 onClick={handleLogout}
