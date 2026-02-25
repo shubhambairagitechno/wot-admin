@@ -85,173 +85,139 @@ export default function Glossaries() {
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
   return (
-    <>
-      <GlobalLoader />
+    <div className="main-wrapper">
       <Header />
-      <div className="wrapper">
-        <Sidebar />
-        <div className="content-wrapper">
-          <div className="content-header">
-            <div className="container-fluid">
-              <div className="row mb-2">
-                <div className="col-sm-6">
-                  <h1 className="m-0">Glossaries</h1>
-                </div>
-                <div className="col-sm-6">
-                  <ol className="breadcrumb float-sm-right">
-                    <li className="breadcrumb-item"><Link to="/dashboard">Home</Link></li>
-                    <li className="breadcrumb-item active">Glossaries</li>
-                  </ol>
+      <Sidebar />
+      <div className="page-wrapper">
+        <div className="content container-fluid">
+          <div className="page-header">
+            <div className="content-page-header">
+              <div>
+                <h5>Glossaries</h5>
+              </div>
+              <div className="list-btn">
+                <ul className="filter-list">
+                  <li>
+                    <Link className="btn btn-primary" to="/add-glossary"><i className="fa fa-plus-circle me-2"></i>Add Glossary</Link>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="row">
+            <div className="col-sm-12">
+              <div className="card">
+                <div className="card-body">
+                  {isLoading ? (
+                    <GlobalLoader visible={true} size="medium" />
+                  ) : glossaries.length === 0 ? (
+                    <div className="text-center py-5">
+                      <p className="text-muted">No glossaries found</p>
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-striped">
+                        <thead>
+                          <tr>
+                            <th>Term</th>
+                            <th>Short Form</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {glossaries.map((glossary) => (
+                            <tr key={glossary.id}>
+                              <td>
+                                <strong>{glossary.term}</strong>
+                              </td>
+                              <td>
+                                <span className="badge bg-info">{glossary.short_form}</span>
+                              </td>
+                              <td>
+                                <span className="badge bg-secondary">{glossary.category}</span>
+                              </td>
+                              <td>
+                                <small title={glossary.description}>
+                                  {glossary.description?.substring(0, 60)}
+                                  {glossary.description?.length > 60 ? '...' : ''}
+                                </small>
+                              </td>
+                              <td>
+                                <div className="d-flex gap-2">
+                                  <button 
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={() => handleDeleteGlossary(glossary.id, glossary.term)}
+                                    title="Delete Glossary"
+                                  >
+                                    <i className="fas fa-trash"></i>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          <section className="content">
-            <div className="container-fluid">
-              <div className="row">
-                <div className="col-md-12">
-                  <div className="card">
-                    <div className="card-header">
-                      <h3 className="card-title">Glossary Terms</h3>
-                      <div className="card-tools">
-                        <Link to="/add-glossary" className="btn btn-primary btn-sm">
-                          <i className="fas fa-plus"></i> Add New Glossary
-                        </Link>
-                      </div>
-                    </div>
-                    <div className="card-body">
-                      {isLoading ? (
-                        <div className="text-center py-4">
-                          <div className="spinner-border" role="status">
-                            <span className="sr-only">Loading...</span>
-                          </div>
-                        </div>
-                      ) : glossaries.length === 0 ? (
-                        <div className="alert alert-info text-center py-4">
-                          <i className="fas fa-info-circle me-2"></i>
-                          No glossaries found. Click "Add New Glossary" to create one.
-                        </div>
-                      ) : (
-                        <>
-                          <div className="table-responsive">
-                            <table className="table table-striped table-hover">
-                              <thead className="table-light">
-                                <tr>
-                                  <th width="5%">#</th>
-                                  <th width="20%">Term</th>
-                                  <th width="15%">Short Form</th>
-                                  <th width="20%">Category</th>
-                                  <th width="30%">Description</th>
-                                  <th width="10%" className="text-center">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {glossaries.map((glossary, index) => (
-                                  <tr key={glossary.id}>
-                                    <td>{(pagination.page - 1) * pagination.limit + index + 1}</td>
-                                    <td>
-                                      <strong>{glossary.term}</strong>
-                                    </td>
-                                    <td>
-                                      <span className="badge badge-info">{glossary.short_form}</span>
-                                    </td>
-                                    <td>
-                                      <span className="badge badge-secondary">{glossary.category}</span>
-                                    </td>
-                                    <td>
-                                      <small title={glossary.description}>
-                                        {glossary.description?.substring(0, 50)}
-                                        {glossary.description?.length > 50 ? '...' : ''}
-                                      </small>
-                                    </td>
-                                    <td className="text-center">
-                                      <div className="btn-group" role="group">
-                                        <button
-                                          onClick={() => handleDeleteGlossary(glossary.id, glossary.term)}
-                                          className="btn btn-sm btn-danger"
-                                          title="Delete"
-                                        >
-                                          <i className="fa fa-trash"></i>
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-
-                          {totalPages > 1 && (
-                            <nav aria-label="Page navigation">
-                              <ul className="pagination justify-content-center">
-                                <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
-                                  <button
-                                    className="page-link"
-                                    onClick={() => handlePageChange(1)}
-                                    disabled={pagination.page === 1}
-                                  >
-                                    First
-                                  </button>
-                                </li>
-                                <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
-                                  <button
-                                    className="page-link"
-                                    onClick={() => handlePageChange(pagination.page - 1)}
-                                    disabled={pagination.page === 1}
-                                  >
-                                    Previous
-                                  </button>
-                                </li>
-
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                  <li key={page} className={`page-item ${pagination.page === page ? 'active' : ''}`}>
-                                    <button
-                                      className="page-link"
-                                      onClick={() => handlePageChange(page)}
-                                    >
-                                      {page}
-                                    </button>
-                                  </li>
-                                ))}
-
-                                <li className={`page-item ${pagination.page === totalPages ? 'disabled' : ''}`}>
-                                  <button
-                                    className="page-link"
-                                    onClick={() => handlePageChange(pagination.page + 1)}
-                                    disabled={pagination.page === totalPages}
-                                  >
-                                    Next
-                                  </button>
-                                </li>
-                                <li className={`page-item ${pagination.page === totalPages ? 'disabled' : ''}`}>
-                                  <button
-                                    className="page-link"
-                                    onClick={() => handlePageChange(totalPages)}
-                                    disabled={pagination.page === totalPages}
-                                  >
-                                    Last
-                                  </button>
-                                </li>
-                              </ul>
-                            </nav>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    <div className="card-footer">
-                      <small className="text-muted">
-                        Page {pagination.page} of {totalPages} | Showing {glossaries.length} of {pagination.total} glossaries
-                      </small>
-                    </div>
+          {totalPages > 1 && glossaries.length > 0 && (
+            <div className="row mt-3">
+              <div className="col-sm-12">
+                <div className="card">
+                  <div className="card-body d-flex justify-content-between align-items-center">
+                    <small className="text-muted">
+                      Page {pagination.page} of {totalPages} | Showing {glossaries.length} of {pagination.total} glossaries
+                    </small>
+                    <nav aria-label="Page navigation">
+                      <ul className="pagination mb-0">
+                        <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
+                          <button
+                            className="page-link"
+                            onClick={() => handlePageChange(pagination.page - 1)}
+                            disabled={pagination.page === 1}
+                          >
+                            Previous
+                          </button>
+                        </li>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).slice(
+                          Math.max(0, pagination.page - 2),
+                          Math.min(totalPages, pagination.page + 1)
+                        ).map((page) => (
+                          <li key={page} className={`page-item ${pagination.page === page ? 'active' : ''}`}>
+                            <button
+                              className="page-link"
+                              onClick={() => handlePageChange(page)}
+                            >
+                              {page}
+                            </button>
+                          </li>
+                        ))}
+                        <li className={`page-item ${pagination.page === totalPages ? 'disabled' : ''}`}>
+                          <button
+                            className="page-link"
+                            onClick={() => handlePageChange(pagination.page + 1)}
+                            disabled={pagination.page === totalPages}
+                          >
+                            Next
+                          </button>
+                        </li>
+                      </ul>
+                    </nav>
                   </div>
                 </div>
               </div>
             </div>
-          </section>
+          )}
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 }
