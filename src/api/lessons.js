@@ -161,7 +161,7 @@ export const updateLesson = async (courseId, lessonId, lessonData, token) => {
 // Delete lesson
 export const deleteLesson = async (lessonId, token) => {
   try {
-    const url = `${API_BASE_URL}/courses/lessons/${lessonId}/delete`;
+    const url = `${API_BASE_URL}/courses/admin/lesson/${lessonId}`;
     
     const response = await fetch(url, {
       method: 'DELETE',
