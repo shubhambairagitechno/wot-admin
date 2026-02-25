@@ -53,39 +53,6 @@ export const addGlossary = async (glossaryData, token) => {
   }
 };
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'accept': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-
-    if (data.status === 1) {
-      return {
-        success: true,
-        data: data.data,
-        message: data.message,
-      };
-    } else {
-      return {
-        success: false,
-        message: data.message || 'Failed to create glossary term',
-      };
-    }
-  } catch (error) {
-    console.error('Add Glossary API Error:', error);
-    return {
-      success: false,
-      message: error.message || 'An error occurred while adding glossary term',
-    };
-  }
-};
-
 // Get all glossary terms
 export const getAllGlossaries = async (token) => {
   try {
@@ -130,7 +97,7 @@ export const getAllGlossaries = async (token) => {
       message: 'No glossaries found. Create one to get started!',
     };
   } catch (error) {
-    console.error('[v0] Get Glossaries API Error:', error);
+    console.error('Get Glossaries API Error:', error);
     return {
       success: true,
       data: [],
